@@ -1,130 +1,349 @@
-import flet as ft
-import flet_onesignal as fos
-from functools import partial
+"""
+Example application demonstrating flet-onesignal integration.
 
+This example shows both imperative and event-driven patterns for using
+the OneSignal SDK with Flet applications.
+"""
+
+import flet as ft
+
+import flet_onesignal as fos
+
+# Replace with your actual OneSignal App ID
 ONESIGNAL_APP_ID = "example-123a-12a3-1a23-abcd1ef23g45"
 
 
 async def main(page: ft.Page):
-    page.appbar = ft.AppBar(title=ft.Text("OneSignal Test"), bgcolor=ft.Colors.BLUE_700, color=ft.Colors.WHITE)
-    get_onesignal_id = ft.TextField(label='Get OneSignal ID', read_only=True)
-    get_external_id = ft.TextField(label='Get External User ID', read_only=True, ignore_pointers=True)
-    set_external_id = ft.TextField(label='Set External User ID', hint_text='User ID')
-    language = ft.TextField(label='Language', hint_text='Language Code (en)', value='en', color=ft.Colors.GREEN)
+    """Main application entry point."""
 
-    def handle_notification_opened(e):
-        #Access the data of the clicked notification
-        list_view.content.controls.append(ft.Text(f"Notification opened: {e.notification_opened}"))
-        list_view.update()
+    page.title = "OneSignal Test"
+    page.appbar = ft.AppBar(
+        title=ft.Text("OneSignal Test"),
+        bgcolor=ft.Colors.BLUE_700,
+        color=ft.Colors.WHITE,
+    )
 
-    def handle_notification_received(e):
-        # Access the data of the received notification
-        list_view.content.controls.append(ft.Text(f"Notification received: {e.notification_received}"))
-        list_view.update()
+    # Text fields for displaying data
+    onesignal_id_field = ft.TextField(
+        label="OneSignal ID",
+        read_only=True,
+        expand=True,
+    )
+    external_id_field = ft.TextField(
+        label="External User ID",
+        read_only=True,
+        expand=True,
+    )
+    external_id_input = ft.TextField(
+        label="Set External User ID",
+        hint_text="Enter user ID to login",
+        expand=True,
+    )
+    language_input = ft.TextField(
+        label="Language Code",
+        hint_text="en, pt, es...",
+        value="en",
+        width=150,
+    )
+    tag_key_input = ft.TextField(
+        label="Tag Key",
+        hint_text="key",
+        width=150,
+    )
+    tag_value_input = ft.TextField(
+        label="Tag Value",
+        hint_text="value",
+        width=150,
+    )
 
-    def handle_click_in_app_messages(e):
-        # Access the data of the received notification in app messages
-        list_view.content.controls.append(ft.Text(f"Notification click_in_app_messages: {e.click_in_app_messages}"))
-        list_view.update()
+    # List view for event logs
+    log_list = ft.ListView(
+        padding=ft.padding.all(10),
+        spacing=5,
+        expand=True,
+        auto_scroll=True,
+    )
 
-    def get_id(e):
-        result = onesignal.get_onesignal_id()
-        get_onesignal_id.value = result
-        get_onesignal_id.update()
+    def add_log(message: str):
+        """Add a message to the log list."""
+        log_list.controls.append(ft.Text(message, size=12, selectable=True))
+        page.update()
 
-    def get_external_user_id(e):
-        result = onesignal.get_external_user_id()
-        get_external_id.value = result
-        get_external_id.update()
+    # -------------------------------------------------------------------------
+    # Event handlers
+    # -------------------------------------------------------------------------
 
-    def handle_login(e, external_user_id):
-        message = "Login failed"
+    def on_notification_click(e: fos.OSNotificationClickEvent):
+        """Handle notification click events."""
+        add_log(f"[Notification Click] {e.notification}")
 
-        if not external_user_id.value:
-            message = "Please enter external user ID"
+    def on_notification_foreground(e: fos.OSNotificationWillDisplayEvent):
+        """Handle foreground notification events."""
+        add_log(f"[Notification Foreground] {e.notification}")
 
-        if external_user_id.value:
-            result = onesignal.login(external_user_id.value)
-            if result:
-                message = "Login successful"
+    def on_permission_change(e: fos.OSPermissionChangeEvent):
+        """Handle permission change events."""
+        add_log(f"[Permission Change] Granted: {e.permission}")
 
-        list_view.content.controls.append(ft.Text(message))
-        list_view.update()
+    def on_user_change(e: fos.OSUserChangedEvent):
+        """Handle user state change events."""
+        add_log(
+            f"[User Change] OneSignal ID: {e.state.onesignal_id}, External ID: {e.state.external_id}"
+        )
 
-    def handle_logout(e):
-        onesignal.logout()
-        set_external_id.value = None
-        set_external_id.update()
+    def on_push_subscription_change(e: fos.OSPushSubscriptionChangedEvent):
+        """Handle push subscription change events."""
+        add_log(f"[Push Subscription] ID: {e.id}, Opted In: {e.opted_in}")
 
-    def set_language(e, language_code):
-        result = onesignal.set_language(language_code.value)
-        list_view.content.controls.append(ft.Text(result))
-        list_view.update()
-        print(result)
+    def on_iam_click(e: fos.OSInAppMessageClickEvent):
+        """Handle in-app message click events."""
+        add_log(f"[IAM Click] Action: {e.result.action_id}, URL: {e.result.url}")
 
-    def handle_error(e):
-        #handle_error
-        list_view.content.controls.append(ft.Text(f"Error: {e.data}"))
-        list_view.update()
+    def on_iam_will_display(e: fos.OSInAppMessageWillDisplayEvent):
+        """Handle in-app message will display events."""
+        add_log(f"[IAM Will Display] {e.message}")
+
+    def on_iam_did_display(e: fos.OSInAppMessageDidDisplayEvent):
+        """Handle in-app message did display events."""
+        add_log("[IAM Did Display]")
+
+    def on_iam_will_dismiss(e: fos.OSInAppMessageWillDismissEvent):
+        """Handle in-app message will dismiss events."""
+        add_log("[IAM Will Dismiss]")
+
+    def on_iam_did_dismiss(e: fos.OSInAppMessageDidDismissEvent):
+        """Handle in-app message did dismiss events."""
+        add_log("[IAM Did Dismiss]")
+
+    def on_error(e: fos.OSErrorEvent):
+        """Handle error events."""
+        add_log(f"[Error] {e.method}: {e.message}")
+
+    # -------------------------------------------------------------------------
+    # Create OneSignal service with event handlers
+    # -------------------------------------------------------------------------
 
     onesignal = fos.OneSignal(
-        settings=fos.OneSignalSettings(app_id=ONESIGNAL_APP_ID),
-        on_notification_opened=handle_notification_opened,
-        on_notification_received=handle_notification_received,
-        on_click_in_app_messages=handle_click_in_app_messages,
-        on_error=handle_error,
+        app_id=ONESIGNAL_APP_ID,
+        log_level=fos.OSLogLevel.DEBUG,
+        on_notification_click=on_notification_click,
+        on_notification_foreground=on_notification_foreground,
+        on_permission_change=on_permission_change,
+        on_user_change=on_user_change,
+        on_push_subscription_change=on_push_subscription_change,
+        on_iam_click=on_iam_click,
+        on_iam_will_display=on_iam_will_display,
+        on_iam_did_display=on_iam_did_display,
+        on_iam_will_dismiss=on_iam_will_dismiss,
+        on_iam_did_dismiss=on_iam_did_dismiss,
+        on_error=on_error,
     )
 
-    container = ft.Container(
-        alignment=ft.alignment.bottom_center,
-        content=ft.Row(
-            scroll=ft.ScrollMode.ADAPTIVE,
-            expand=True,
-            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-            controls=[
-                ft.ElevatedButton(
-                    text='Get OneSignal Id',
-                    on_click=get_id
-                ),
-                ft.ElevatedButton(
-                    'Get External User Id',
-                    on_click=get_external_user_id
-                ),
-                ft.ElevatedButton(
-                    text='Set External User Id',
-                    on_click=partial(handle_login, external_user_id=set_external_id)
-                ),
-                ft.ElevatedButton(
-                    text='Logout External User Id',
-                    on_click=handle_logout
-                ),
-                ft.ElevatedButton(
-                    text='Set Language',
-                    on_click=partial(set_language, language_code=language)
-                ),
-            ]
-        )
-    )
-
-    list_view = ft.Container(
-        expand=True,
-        content=ft.ListView(
-            padding=ft.padding.all(10),
-            spacing=5,
-        )
-    )
+    # Add to page overlay
     page.overlay.append(onesignal)
 
-    page.add(
-        # onesignal,
-        list_view,
-        get_onesignal_id,
-        get_external_id,
-        set_external_id,
-        language,
-        container,
+    # -------------------------------------------------------------------------
+    # Button handlers (imperative API usage)
+    # -------------------------------------------------------------------------
+
+    async def get_onesignal_id(e):
+        """Get the OneSignal ID."""
+        result = await onesignal.user.get_onesignal_id()
+        onesignal_id_field.value = result or "Not available"
+        add_log(f"OneSignal ID: {result}")
+        page.update()
+
+    async def get_external_id(e):
+        """Get the external user ID."""
+        result = await onesignal.user.get_external_id()
+        external_id_field.value = result or "Not set"
+        add_log(f"External ID: {result}")
+        page.update()
+
+    async def login(e):
+        """Login with external user ID."""
+        user_id = external_id_input.value
+        if not user_id:
+            add_log("Please enter an external user ID")
+            return
+        await onesignal.login(user_id)
+        add_log(f"Logged in as: {user_id}")
+
+    async def logout(e):
+        """Logout the current user."""
+        await onesignal.logout()
+        external_id_input.value = ""
+        add_log("Logged out")
+        page.update()
+
+    async def request_permission(e):
+        """Request notification permission."""
+        result = await onesignal.notifications.request_permission()
+        add_log(f"Permission granted: {result}")
+
+    async def set_language(e):
+        """Set the user's language."""
+        code = language_input.value
+        if code:
+            await onesignal.user.set_language(code)
+            add_log(f"Language set to: {code}")
+
+    async def add_tag(e):
+        """Add a tag to the user."""
+        key = tag_key_input.value
+        value = tag_value_input.value
+        if key and value:
+            await onesignal.user.add_tag(key, value)
+            add_log(f"Tag added: {key}={value}")
+        else:
+            add_log("Please enter both tag key and value")
+
+    async def remove_tag(e):
+        """Remove a tag from the user."""
+        key = tag_key_input.value
+        if key:
+            await onesignal.user.remove_tag(key)
+            add_log(f"Tag removed: {key}")
+        else:
+            add_log("Please enter a tag key to remove")
+
+    async def get_tags(e):
+        """Get all tags for the user."""
+        tags = await onesignal.user.get_tags()
+        add_log(f"Tags: {tags}")
+
+    async def opt_in_push(e):
+        """Opt in to push notifications."""
+        await onesignal.user.opt_in_push()
+        add_log("Opted in to push notifications")
+
+    async def opt_out_push(e):
+        """Opt out of push notifications."""
+        await onesignal.user.opt_out_push()
+        add_log("Opted out of push notifications")
+
+    async def clear_notifications(e):
+        """Clear all notifications."""
+        await onesignal.notifications.clear_all()
+        add_log("Notifications cleared")
+
+    def clear_logs(e):
+        """Clear the log list."""
+        log_list.controls.clear()
+        page.update()
+
+    # -------------------------------------------------------------------------
+    # Build UI
+    # -------------------------------------------------------------------------
+
+    # ID display row
+    id_row = ft.Row(
+        controls=[onesignal_id_field, external_id_field],
+        spacing=10,
     )
+
+    # ID action buttons
+    id_buttons = ft.Row(
+        controls=[
+            ft.ElevatedButton("Get OneSignal ID", on_click=get_onesignal_id),
+            ft.ElevatedButton("Get External ID", on_click=get_external_id),
+        ],
+        spacing=10,
+        wrap=True,
+    )
+
+    # Login row
+    login_row = ft.Row(
+        controls=[
+            external_id_input,
+            ft.ElevatedButton("Login", on_click=login),
+            ft.ElevatedButton("Logout", on_click=logout),
+        ],
+        spacing=10,
+    )
+
+    # Permission and language row
+    settings_row = ft.Row(
+        controls=[
+            ft.ElevatedButton("Request Permission", on_click=request_permission),
+            language_input,
+            ft.ElevatedButton("Set Language", on_click=set_language),
+        ],
+        spacing=10,
+        wrap=True,
+    )
+
+    # Tags row
+    tags_row = ft.Row(
+        controls=[
+            tag_key_input,
+            tag_value_input,
+            ft.ElevatedButton("Add Tag", on_click=add_tag),
+            ft.ElevatedButton("Remove Tag", on_click=remove_tag),
+            ft.ElevatedButton("Get Tags", on_click=get_tags),
+        ],
+        spacing=10,
+        wrap=True,
+    )
+
+    # Push subscription row
+    push_row = ft.Row(
+        controls=[
+            ft.ElevatedButton("Opt In Push", on_click=opt_in_push),
+            ft.ElevatedButton("Opt Out Push", on_click=opt_out_push),
+            ft.ElevatedButton("Clear Notifications", on_click=clear_notifications),
+        ],
+        spacing=10,
+        wrap=True,
+    )
+
+    # Log section
+    log_section = ft.Container(
+        content=ft.Column(
+            controls=[
+                ft.Row(
+                    controls=[
+                        ft.Text("Event Logs", weight=ft.FontWeight.BOLD),
+                        ft.ElevatedButton("Clear", on_click=clear_logs),
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                ),
+                ft.Container(
+                    content=log_list,
+                    border=ft.border.all(1, ft.Colors.GREY_400),
+                    border_radius=5,
+                    expand=True,
+                ),
+            ],
+            expand=True,
+        ),
+        expand=True,
+    )
+
+    # Add all controls to page
+    page.add(
+        ft.Column(
+            controls=[
+                id_row,
+                id_buttons,
+                ft.Divider(),
+                login_row,
+                ft.Divider(),
+                settings_row,
+                ft.Divider(),
+                tags_row,
+                ft.Divider(),
+                push_row,
+                ft.Divider(),
+                log_section,
+            ],
+            expand=True,
+            spacing=10,
+        )
+    )
+
+    add_log("OneSignal initialized. Ready to test!")
 
 
 if __name__ == "__main__":
-    ft.app(target=main)
+    ft.run(main)

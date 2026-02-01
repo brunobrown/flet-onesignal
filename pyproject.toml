@@ -1,8 +1,8 @@
 [project]
 name = "flet-onesignal"
-version = "0.3.3"
+version = "0.4.0"
 description = "Flutter OneSignal package integration for Python Flet."
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 readme = "README.md"
 authors = [
     { name = "brunobrown", email = "brunobrown.86@gmail.com" }
@@ -11,8 +11,77 @@ license = "MIT"
 license-files = ["LICENSE"]
 
 dependencies = [
-    "flet>=0.26.0",
+    "flet>=0.80.5",
 ]
+
+[dependency-groups]
+dev = [
+    "flet[all]>=0.80.5",
+]
+
+[tool.ruff]
+output-format = "concise"
+extend-exclude = ["__pycache__"]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+]
+ignore = [
+    "F403", # Não é possível detectar nomes indefinidos
+#    "F405",
+    "E501", # line too long (handled by formatter)
+    "B008", # do not perform function calls in argument defaults
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-v --tb=short"
+
+[tool.ty.rules]
+# Erros causados por **kwargs com dicionários dinâmicos
+# O ty ainda não consegue inferir corretamente esses padrões
+invalid-argument-type = "ignore"
+
+# Erros de operadores com tipos desconhecidos do flet
+unsupported-operator = "ignore"
+
+# Erros de contexto do Flet (use_context pode retornar None)
+unresolved-attribute = "ignore"
+
+# Erros de parâmetros em controles do Flet
+missing-argument = "ignore"
+
+# Erros de atribuição com @ft.observable e use_state
+invalid-assignment = "ignore"
+
+# Warnings de atributos possivelmente faltando
+possibly-missing-attribute = "ignore"
+
+[tool.ty.terminal]
+output-format = "concise"  # Links clicáveis no terminal
+#error-on-warning = false   # Opcional: não retornar erro em warnings
+
+#[tool.setuptools]
+##packages = ["flet_onesignal"]
+##package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+"flutter.flet_onesignal" = ["**/*"]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
 classifiers = [
     "Topic :: Software Development :: Debuggers",
@@ -34,19 +103,3 @@ Homepage = "https://github.com/brunobrown/flet-onesignal"
 Repository = "https://github.com/brunobrown/flet-onesignal"
 Issues = "https://github.com/brunobrown/flet-onesignal/issues"
 #Changelog = ""
-
-[tool.uv]
-dev-dependencies = [
-    "flet[all]>=0.26.0",
-]
-
-#[tool.setuptools]
-##packages = ["flet_onesignal"]
-##package-dir = {"" = "src"}
-
-[tool.setuptools.package-data]
-"flutter.flet_onesignal" = ["**/*"]
-
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"

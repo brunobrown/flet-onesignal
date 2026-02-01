@@ -1,74 +1,127 @@
 <p align="center"><img src="https://github.com/user-attachments/assets/ee3f4caf-10a7-4c58-948d-6a59fda97850" width="300" height="150" alt="Flet OneSignal"></p>
 
+<h1 align="center">Flet OneSignal</h1>
 
-<h1 align="center"> Flet OneSignal </h1>
+<p align="center">
+  <strong>OneSignal SDK integration for Flet applications</strong>
+</p>
+
+<p align="center">
+  <a href="#installation">Installation</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#user-management">User Management</a> •
+  <a href="#push-notifications">Push Notifications</a> •
+  <a href="#in-app-messages">In-App Messages</a> •
+  <a href="#api-reference">API Reference</a>
+</p>
+
+---
 
 ## Overview
 
-Flet OneSignal is an extension for Flet in Python, integrating the OneSignal Flutter SDK. It enables push notifications, in-app messaging, and user management for mobile apps, making it easier to connect your iOS and Android applications with OneSignal.
+**Flet OneSignal** is an extension that integrates the [OneSignal Flutter SDK](https://documentation.onesignal.com/docs/flutter-sdk-setup) with [Flet](https://flet.dev) applications. It provides a complete Python API for:
 
-**Version 0.4.0** - Updated for Flet 0.80.x with modular architecture mirroring the OneSignal SDK structure.
+- **Push Notifications** - Send and receive push notifications on iOS and Android
+- **In-App Messages** - Display targeted messages within your app
+- **User Management** - Manage user identity, tags, aliases, and subscriptions
+- **Email & SMS** - Add email and SMS subscriptions for omnichannel messaging
+- **Outcomes** - Track user actions and conversions
+- **Live Activities** - Update iOS Live Activities in real-time (iOS 16.1+)
+
+> **Version 0.4.0** - Built for Flet 0.80.x with a modular architecture that mirrors the OneSignal SDK structure.
+
+---
 
 ## Buy Me a Coffee
-If you liked this project, please consider supporting its development with a donation. Your contribution will help me maintain and improve it.
+
+If you find this project useful, please consider supporting its development:
 
 <a href="https://www.buymeacoffee.com/brunobrown">
 <img src="https://www.buymeacoffee.com/assets/img/guidelines/download-assets-sm-1.svg" width="200" alt="Buy Me a Coffee">
 </a>
 
+---
+
 ## Requirements
 
-| Requirement | Version |
-|-------------|---------|
+| Component | Minimum Version |
+|-----------|-----------------|
 | Python | 3.10+ |
 | Flet | 0.80.5+ |
 | Flutter | 3.29.0+ |
 | OneSignal Flutter SDK | 5.4.0 |
-| iOS | 12+ |
-| Android | API 24+ (Android 7.0) |
 
-## Installation
+### Platform Requirements
 
-You can install `flet-onesignal` using one of the following package managers:
-
-**UV (Recommended)**
-
-```console
-uv add flet-onesignal
-```
-
-**PIP**
-
-```console
-pip install flet-onesignal
-```
-
-**POETRY**
-
-```console
-poetry add flet-onesignal
-```
+| Platform | Minimum Version | Notes |
+|----------|-----------------|-------|
+| **iOS** | 12.0+ | Requires Xcode 14+ |
+| **Android** | API 24 (Android 7.0)+ | Requires `compileSdkVersion 33+` |
 
 ---
 
-## Configuration
+## Installation
 
-Add `flet-onesignal` to your `pyproject.toml`:
+### Step 1: Install the Package
+
+Choose your preferred package manager:
+
+```bash
+# Using UV (Recommended)
+uv add flet-onesignal
+
+# Using pip
+pip install flet-onesignal
+
+# Using Poetry
+poetry add flet-onesignal
+```
+
+### Step 2: Configure pyproject.toml
+
+Add the dependency to your project configuration:
 
 ```toml
 [project]
 name = "my-flet-app"
-version = "0.1.0"
+version = "1.0.0"
 requires-python = ">=3.10"
 
 dependencies = [
     "flet>=0.80.5",
     "flet-onesignal>=0.4.0",
 ]
-
-[tool.flet]
-# Your flet build configuration
 ```
+
+### Step 3: OneSignal Dashboard Setup
+
+1. Create an account at [OneSignal.com](https://onesignal.com)
+2. Create a new app in the OneSignal dashboard
+3. Configure your iOS and/or Android platforms
+4. Copy your **App ID** from Settings > Keys & IDs
+
+### Step 4: Platform Configuration
+
+#### Android Configuration
+
+Add the following to your `android/app/build.gradle`:
+
+```gradle
+android {
+    compileSdkVersion 34
+
+    defaultConfig {
+        minSdkVersion 24
+        // ...
+    }
+}
+```
+
+#### iOS Configuration
+
+1. Enable **Push Notifications** capability in Xcode
+2. Enable **Background Modes** > Remote notifications
+3. Add your APNs certificate to the OneSignal dashboard
 
 ---
 
@@ -78,21 +131,31 @@ dependencies = [
 import flet as ft
 import flet_onesignal as fos
 
-ONESIGNAL_APP_ID = "your-onesignal-app-id"
+# Your OneSignal App ID from the dashboard
+ONESIGNAL_APP_ID = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
 
 async def main(page: ft.Page):
-    # Create OneSignal service
-    onesignal = fos.OneSignal(app_id=ONESIGNAL_APP_ID)
+    page.title = "My App"
+
+    # Initialize OneSignal
+    onesignal = fos.OneSignal(
+        app_id=ONESIGNAL_APP_ID,
+        log_level=fos.OSLogLevel.DEBUG,  # Enable debug logging
+    )
+
+    # Add to page overlay (required for services)
     page.overlay.append(onesignal)
 
     # Request notification permission
-    granted = await onesignal.notifications.request_permission()
-    print(f"Permission granted: {granted}")
+    permission_granted = await onesignal.notifications.request_permission()
+    print(f"Notification permission: {permission_granted}")
 
-    # Login user
-    await onesignal.login("user-123")
+    # Identify the user (optional but recommended)
+    await onesignal.login("user_12345")
 
-    page.add(ft.Text("OneSignal initialized!"))
+    page.add(ft.Text("OneSignal is ready!"))
+
 
 if __name__ == "__main__":
     ft.run(main)
@@ -102,263 +165,494 @@ if __name__ == "__main__":
 
 ## Architecture
 
-The package follows the OneSignal SDK's modular architecture:
+The SDK follows a modular architecture that mirrors the official OneSignal SDK:
 
 ```
-OneSignal (main service)
-├── onesignal.debug          # Logging configuration
-├── onesignal.user           # User identity, tags, aliases, email, SMS
-├── onesignal.notifications  # Push notification management
-├── onesignal.in_app_messages # In-app message triggers and lifecycle
-├── onesignal.location       # Location sharing
-├── onesignal.session        # Outcomes tracking
-└── onesignal.live_activities # Live Activities (iOS only)
+fos.OneSignal
+│
+├── .debug              # Logging and debugging
+├── .user               # User identity, tags, aliases, email, SMS
+├── .notifications      # Push notification management
+├── .in_app_messages    # In-app message triggers and lifecycle
+├── .location           # Location sharing (optional)
+├── .session            # Outcomes and analytics
+└── .live_activities    # iOS Live Activities (iOS 16.1+)
+```
+
+Each module provides focused functionality and can be accessed as a property of the main `OneSignal` instance.
+
+---
+
+## User Management
+
+### Login and Logout
+
+Associate users with their account in your system using an **External User ID**:
+
+```python
+# Login - Associates the device with your user ID
+await onesignal.login("user_12345")
+
+# Logout - Removes the association, creates anonymous user
+await onesignal.logout()
+```
+
+> **Best Practice:** Call `login()` when the user signs into your app and `logout()` when they sign out.
+
+### Get User IDs
+
+```python
+# Get the OneSignal-generated user ID
+onesignal_id = await onesignal.user.get_onesignal_id()
+print(f"OneSignal ID: {onesignal_id}")
+
+# Get the External User ID (set via login)
+external_id = await onesignal.user.get_external_id()
+print(f"External ID: {external_id}")
+```
+
+### Tags
+
+Tags are key-value pairs used for segmentation and personalization:
+
+```python
+# Add a single tag
+await onesignal.user.add_tag("subscription_type", "premium")
+
+# Add multiple tags at once
+await onesignal.user.add_tags({
+    "favorite_team": "barcelona",
+    "notification_frequency": "daily",
+    "app_version": "2.1.0",
+})
+
+# Remove a tag
+await onesignal.user.remove_tag("old_tag")
+
+# Remove multiple tags
+await onesignal.user.remove_tags(["tag1", "tag2", "tag3"])
+
+# Get all tags
+tags = await onesignal.user.get_tags()
+print(f"User tags: {tags}")
+```
+
+### Aliases
+
+Aliases allow you to associate multiple identifiers with a single user:
+
+```python
+# Add an alias (e.g., CRM ID, database ID)
+await onesignal.user.add_alias("crm_id", "CRM_98765")
+
+# Add multiple aliases
+await onesignal.user.add_aliases({
+    "database_id": "DB_12345",
+    "analytics_id": "GA_67890",
+})
+
+# Remove an alias
+await onesignal.user.remove_alias("old_alias")
+```
+
+### Email Subscriptions
+
+Add email addresses for omnichannel messaging:
+
+```python
+# Add an email subscription
+await onesignal.user.add_email("user@example.com")
+
+# Remove an email subscription
+await onesignal.user.remove_email("user@example.com")
+```
+
+### SMS Subscriptions
+
+Add phone numbers for SMS messaging (use E.164 format):
+
+```python
+# Add SMS subscription (E.164 format: +[country code][number])
+await onesignal.user.add_sms("+5511999999999")
+
+# Remove SMS subscription
+await onesignal.user.remove_sms("+5511999999999")
+```
+
+### Language
+
+Set the user's preferred language for localized notifications:
+
+```python
+# Set language using ISO 639-1 code
+await onesignal.user.set_language("pt")  # Portuguese
+await onesignal.user.set_language("es")  # Spanish
+await onesignal.user.set_language("en")  # English
 ```
 
 ---
 
-## Complete Example
+## Push Notifications
+
+### Requesting Permission
+
+You must request permission before sending push notifications:
 
 ```python
-import flet as ft
-import flet_onesignal as fos
+# Request permission with fallback to settings
+granted = await onesignal.notifications.request_permission(
+    fallback_to_settings=True  # Opens settings if previously denied
+)
 
-ONESIGNAL_APP_ID = "your-onesignal-app-id"
+if granted:
+    print("User granted notification permission!")
+else:
+    print("User denied notification permission")
+```
 
-async def main(page: ft.Page):
-    page.title = "OneSignal Demo"
+### Check Permission Status
 
-    # Event log display
-    log_list = ft.ListView(expand=True, spacing=5)
+```python
+# Check if permission can be requested (not yet prompted)
+can_request = await onesignal.notifications.can_request_permission()
 
-    def add_log(message: str):
-        log_list.controls.append(ft.Text(message, size=12))
-        page.update()
+# Check current permission status
+has_permission = await onesignal.notifications.get_permission()
+```
 
-    # Event handlers
-    def on_notification_click(e: fos.OSNotificationClickEvent):
-        add_log(f"Notification clicked: {e.notification}")
+### iOS Provisional Authorization
 
-    def on_notification_foreground(e: fos.OSNotificationWillDisplayEvent):
-        add_log(f"Notification received: {e.notification}")
+Request provisional (quiet) authorization on iOS 12+:
 
-    def on_permission_change(e: fos.OSPermissionChangeEvent):
-        add_log(f"Permission changed: {e.permission}")
+```python
+# Notifications will be delivered quietly to Notification Center
+authorized = await onesignal.notifications.register_for_provisional_authorization()
+```
 
-    def on_user_change(e: fos.OSUserChangedEvent):
-        add_log(f"User changed - ID: {e.state.onesignal_id}")
+### Managing Notifications
 
-    def on_iam_click(e: fos.OSInAppMessageClickEvent):
-        add_log(f"IAM clicked: {e.result.action_id}")
+```python
+# Clear all notifications from the notification center
+await onesignal.notifications.clear_all()
 
-    def on_error(e: fos.OSErrorEvent):
-        add_log(f"Error: {e.method} - {e.message}")
+# Remove a specific notification (Android only)
+await onesignal.notifications.remove_notification(notification_id)
 
-    # Create OneSignal with event handlers
-    onesignal = fos.OneSignal(
-        app_id=ONESIGNAL_APP_ID,
-        log_level=fos.OSLogLevel.DEBUG,
-        on_notification_click=on_notification_click,
-        on_notification_foreground=on_notification_foreground,
-        on_permission_change=on_permission_change,
-        on_user_change=on_user_change,
-        on_iam_click=on_iam_click,
-        on_error=on_error,
-    )
-    page.overlay.append(onesignal)
+# Remove a group of notifications (Android only)
+await onesignal.notifications.remove_grouped_notifications("group_key")
+```
 
-    # Button handlers
-    async def request_permission(e):
-        result = await onesignal.notifications.request_permission()
-        add_log(f"Permission granted: {result}")
+### Push Subscription Control
 
-    async def get_onesignal_id(e):
-        result = await onesignal.user.get_onesignal_id()
-        add_log(f"OneSignal ID: {result}")
+```python
+# Opt user into push notifications
+await onesignal.user.opt_in_push()
 
-    async def login_user(e):
-        await onesignal.login("user-123")
-        add_log("User logged in")
+# Opt user out of push notifications
+await onesignal.user.opt_out_push()
 
-    async def logout_user(e):
-        await onesignal.logout()
-        add_log("User logged out")
+# Check if user is opted in
+is_opted_in = await onesignal.user.is_push_opted_in()
 
-    async def add_tag(e):
-        await onesignal.user.add_tag("premium", "true")
-        add_log("Tag added: premium=true")
+# Get push subscription details
+subscription_id = await onesignal.user.get_push_subscription_id()
+push_token = await onesignal.user.get_push_subscription_token()
+```
 
-    async def set_language(e):
-        await onesignal.user.set_language("pt")
-        add_log("Language set to Portuguese")
+### Handling Notification Events
 
-    # Build UI
-    page.add(
-        ft.Column([
-            ft.Row([
-                ft.ElevatedButton("Request Permission", on_click=request_permission),
-                ft.ElevatedButton("Get OneSignal ID", on_click=get_onesignal_id),
-            ], wrap=True),
-            ft.Row([
-                ft.ElevatedButton("Login", on_click=login_user),
-                ft.ElevatedButton("Logout", on_click=logout_user),
-            ], wrap=True),
-            ft.Row([
-                ft.ElevatedButton("Add Tag", on_click=add_tag),
-                ft.ElevatedButton("Set Language", on_click=set_language),
-            ], wrap=True),
-            ft.Divider(),
-            ft.Text("Event Logs:", weight=ft.FontWeight.BOLD),
-            ft.Container(content=log_list, expand=True, border=ft.border.all(1)),
-        ], expand=True)
-    )
+```python
+def on_notification_click(e: fos.OSNotificationClickEvent):
+    """Called when user taps on a notification."""
+    print(f"Notification clicked: {e.notification}")
+    print(f"Action ID: {e.action_id}")  # If action buttons were used
 
-    add_log("OneSignal initialized!")
 
-if __name__ == "__main__":
-    ft.run(main)
+def on_notification_foreground(e: fos.OSNotificationWillDisplayEvent):
+    """Called when notification received while app is in foreground."""
+    print(f"Notification received: {e.notification}")
+    print(f"Notification ID: {e.notification_id}")
+
+    # Optionally prevent display and handle manually
+    # await onesignal.notifications.prevent_default(e.notification_id)
+
+
+def on_permission_change(e: fos.OSPermissionChangeEvent):
+    """Called when notification permission status changes."""
+    print(f"Permission granted: {e.permission}")
+
+
+# Register handlers when creating OneSignal instance
+onesignal = fos.OneSignal(
+    app_id=ONESIGNAL_APP_ID,
+    on_notification_click=on_notification_click,
+    on_notification_foreground=on_notification_foreground,
+    on_permission_change=on_permission_change,
+)
+```
+
+---
+
+## In-App Messages
+
+In-App Messages (IAMs) are messages displayed within your app based on triggers.
+
+### Triggers
+
+Triggers determine when IAMs are displayed:
+
+```python
+# Add a trigger
+await onesignal.in_app_messages.add_trigger("level_completed", "5")
+
+# Add multiple triggers
+await onesignal.in_app_messages.add_triggers({
+    "screen": "checkout",
+    "cart_value": "50",
+})
+
+# Remove a trigger
+await onesignal.in_app_messages.remove_trigger("old_trigger")
+
+# Remove multiple triggers
+await onesignal.in_app_messages.remove_triggers(["trigger1", "trigger2"])
+
+# Clear all triggers
+await onesignal.in_app_messages.clear_triggers()
+```
+
+### Pausing In-App Messages
+
+Temporarily prevent IAMs from displaying:
+
+```python
+# Pause IAM display
+await onesignal.in_app_messages.pause()
+
+# Resume IAM display
+await onesignal.in_app_messages.resume()
+
+# Check if paused
+is_paused = await onesignal.in_app_messages.is_paused()
+```
+
+### IAM Event Handlers
+
+```python
+def on_iam_click(e: fos.OSInAppMessageClickEvent):
+    """Called when user interacts with an IAM."""
+    print(f"IAM clicked - Action: {e.result.action_id}")
+    print(f"URL: {e.result.url}")
+    print(f"Closing message: {e.result.closing_message}")
+
+
+def on_iam_will_display(e: fos.OSInAppMessageWillDisplayEvent):
+    """Called before an IAM is displayed."""
+    print(f"IAM will display: {e.message}")
+
+
+def on_iam_did_display(e: fos.OSInAppMessageDidDisplayEvent):
+    """Called after an IAM is displayed."""
+    print("IAM displayed")
+
+
+def on_iam_will_dismiss(e: fos.OSInAppMessageWillDismissEvent):
+    """Called before an IAM is dismissed."""
+    print("IAM will dismiss")
+
+
+def on_iam_did_dismiss(e: fos.OSInAppMessageDidDismissEvent):
+    """Called after an IAM is dismissed."""
+    print("IAM dismissed")
+
+
+onesignal = fos.OneSignal(
+    app_id=ONESIGNAL_APP_ID,
+    on_iam_click=on_iam_click,
+    on_iam_will_display=on_iam_will_display,
+    on_iam_did_display=on_iam_did_display,
+    on_iam_will_dismiss=on_iam_will_dismiss,
+    on_iam_did_dismiss=on_iam_did_dismiss,
+)
+```
+
+---
+
+## Location
+
+Share user location for geo-targeted messaging:
+
+```python
+# Request location permission
+granted = await onesignal.location.request_permission()
+
+# Enable location sharing
+await onesignal.location.set_shared(True)
+
+# Disable location sharing
+await onesignal.location.set_shared(False)
+
+# Check if location is being shared
+is_shared = await onesignal.location.is_shared()
+```
+
+> **Note:** Location sharing requires appropriate permissions configured in your app.
+
+---
+
+## Outcomes
+
+Track user actions and conversions attributed to notifications:
+
+```python
+# Track a simple outcome
+await onesignal.session.add_outcome("product_viewed")
+
+# Track a unique outcome (counted once per notification)
+await onesignal.session.add_unique_outcome("app_opened")
+
+# Track an outcome with a value (e.g., purchase amount)
+await onesignal.session.add_outcome_with_value("purchase", 29.99)
+```
+
+---
+
+## Live Activities (iOS)
+
+Update iOS Live Activities in real-time (iOS 16.1+):
+
+```python
+# Enter a Live Activity
+await onesignal.live_activities.enter(
+    activity_id="delivery_12345",
+    token="live_activity_push_token"
+)
+
+# Exit a Live Activity
+await onesignal.live_activities.exit("delivery_12345")
+
+# Set push-to-start token for a Live Activity type
+await onesignal.live_activities.set_push_to_start_token(
+    activity_type="DeliveryActivityAttributes",
+    token="push_to_start_token"
+)
+
+# Remove push-to-start token
+await onesignal.live_activities.remove_push_to_start_token("DeliveryActivityAttributes")
+```
+
+---
+
+## Privacy & Consent
+
+For GDPR and other privacy regulations, you can require user consent before collecting data:
+
+```python
+# Create OneSignal with consent requirement
+onesignal = fos.OneSignal(
+    app_id=ONESIGNAL_APP_ID,
+    require_consent=True,  # SDK won't collect data until consent is given
+)
+
+# After user accepts your privacy policy
+await onesignal.consent_given(True)
+
+# If user declines
+await onesignal.consent_given(False)
+```
+
+---
+
+## Debugging
+
+### Log Levels
+
+Configure SDK logging for development:
+
+```python
+# Set log level during initialization
+onesignal = fos.OneSignal(
+    app_id=ONESIGNAL_APP_ID,
+    log_level=fos.OSLogLevel.VERBOSE,
+)
+
+# Or change it dynamically
+await onesignal.debug.set_log_level(fos.OSLogLevel.DEBUG)
+
+# Set alert level (visual alerts for errors)
+await onesignal.debug.set_alert_level(fos.OSLogLevel.ERROR)
+```
+
+**Available log levels:**
+
+| Level | Description |
+|-------|-------------|
+| `NONE` | No logging |
+| `FATAL` | Only fatal errors |
+| `ERROR` | Errors and fatal errors |
+| `WARN` | Warnings and above |
+| `INFO` | Informational messages and above |
+| `DEBUG` | Debug messages and above |
+| `VERBOSE` | All messages including verbose details |
+
+### Error Handling
+
+```python
+def on_error(e: fos.OSErrorEvent):
+    """Called when an error occurs in the SDK."""
+    print(f"Error in {e.method}: {e.message}")
+    if e.stack_trace:
+        print(f"Stack trace: {e.stack_trace}")
+
+
+onesignal = fos.OneSignal(
+    app_id=ONESIGNAL_APP_ID,
+    on_error=on_error,
+)
 ```
 
 ---
 
 ## API Reference
 
-### OneSignal (Main Service)
+### OneSignal (Main Class)
 
 ```python
-onesignal = fos.OneSignal(
-    app_id="your-app-id",
-    log_level=fos.OSLogLevel.DEBUG,  # Optional
-    require_consent=False,            # Optional: GDPR consent
+fos.OneSignal(
+    app_id: str,                          # Required: Your OneSignal App ID
+    log_level: OSLogLevel = None,         # Optional: SDK log level
+    require_consent: bool = False,        # Optional: Require user consent
+    on_notification_click: Callable = None,
+    on_notification_foreground: Callable = None,
+    on_permission_change: Callable = None,
+    on_user_change: Callable = None,
+    on_push_subscription_change: Callable = None,
+    on_iam_click: Callable = None,
+    on_iam_will_display: Callable = None,
+    on_iam_did_display: Callable = None,
+    on_iam_will_dismiss: Callable = None,
+    on_iam_did_dismiss: Callable = None,
+    on_error: Callable = None,
 )
-
-# Main methods
-await onesignal.login("external-user-id")
-await onesignal.logout()
-await onesignal.consent_given(True)  # When require_consent=True
 ```
 
-### User Management
+### Event Types
 
-```python
-# Identity
-onesignal_id = await onesignal.user.get_onesignal_id()
-external_id = await onesignal.user.get_external_id()
+| Event Class | Properties |
+|-------------|------------|
+| `OSNotificationClickEvent` | `notification`, `action_id` |
+| `OSNotificationWillDisplayEvent` | `notification`, `notification_id` |
+| `OSPermissionChangeEvent` | `permission` |
+| `OSUserChangedEvent` | `state.onesignal_id`, `state.external_id` |
+| `OSPushSubscriptionChangedEvent` | `id`, `token`, `opted_in` |
+| `OSInAppMessageClickEvent` | `message`, `result.action_id`, `result.url` |
+| `OSInAppMessageWillDisplayEvent` | `message` |
+| `OSInAppMessageDidDisplayEvent` | `message` |
+| `OSInAppMessageWillDismissEvent` | `message` |
+| `OSInAppMessageDidDismissEvent` | `message` |
+| `OSErrorEvent` | `method`, `message`, `stack_trace` |
 
-# Tags
-await onesignal.user.add_tag("key", "value")
-await onesignal.user.add_tags({"key1": "value1", "key2": "value2"})
-await onesignal.user.remove_tag("key")
-tags = await onesignal.user.get_tags()
-
-# Aliases
-await onesignal.user.add_alias("crm_id", "12345")
-await onesignal.user.remove_alias("crm_id")
-
-# Email & SMS
-await onesignal.user.add_email("user@example.com")
-await onesignal.user.remove_email("user@example.com")
-await onesignal.user.add_sms("+5511999999999")
-await onesignal.user.remove_sms("+5511999999999")
-
-# Language
-await onesignal.user.set_language("pt")
-
-# Push subscription
-await onesignal.user.opt_in_push()
-await onesignal.user.opt_out_push()
-is_opted_in = await onesignal.user.is_push_opted_in()
-```
-
-### Notifications
-
-```python
-# Permission
-granted = await onesignal.notifications.request_permission(fallback_to_settings=True)
-can_request = await onesignal.notifications.can_request_permission()
-has_permission = await onesignal.notifications.get_permission()
-
-# iOS provisional authorization
-await onesignal.notifications.register_for_provisional_authorization()
-
-# Clear notifications
-await onesignal.notifications.clear_all()
-await onesignal.notifications.remove_notification(notification_id)  # Android
-await onesignal.notifications.remove_grouped_notifications("group")  # Android
-
-# Foreground display control
-await onesignal.notifications.prevent_default(notification_id)
-await onesignal.notifications.display(notification_id)
-```
-
-### In-App Messages
-
-```python
-# Triggers
-await onesignal.in_app_messages.add_trigger("key", "value")
-await onesignal.in_app_messages.add_triggers({"key1": "value1"})
-await onesignal.in_app_messages.remove_trigger("key")
-await onesignal.in_app_messages.clear_triggers()
-
-# Pause/Resume
-await onesignal.in_app_messages.pause()
-await onesignal.in_app_messages.resume()
-is_paused = await onesignal.in_app_messages.is_paused()
-```
-
-### Location
-
-```python
-granted = await onesignal.location.request_permission()
-await onesignal.location.set_shared(True)
-is_shared = await onesignal.location.is_shared()
-```
-
-### Session (Outcomes)
-
-```python
-await onesignal.session.add_outcome("purchase")
-await onesignal.session.add_unique_outcome("signup")
-await onesignal.session.add_outcome_with_value("revenue", 29.99)
-```
-
-### Live Activities (iOS only)
-
-```python
-await onesignal.live_activities.enter("activity-id", "token")
-await onesignal.live_activities.exit("activity-id")
-await onesignal.live_activities.set_push_to_start_token("activity-type", "token")
-await onesignal.live_activities.remove_push_to_start_token("activity-type")
-```
-
-### Debug
-
-```python
-await onesignal.debug.set_log_level(fos.OSLogLevel.VERBOSE)
-await onesignal.debug.set_alert_level(fos.OSLogLevel.ERROR)
-```
-
----
-
-## Event Types
-
-| Event | Description |
-|-------|-------------|
-| `OSNotificationClickEvent` | User clicked a notification |
-| `OSNotificationWillDisplayEvent` | Notification will display in foreground |
-| `OSPermissionChangeEvent` | Permission status changed |
-| `OSUserChangedEvent` | User state changed |
-| `OSPushSubscriptionChangedEvent` | Push subscription changed |
-| `OSInAppMessageClickEvent` | User clicked in-app message |
-| `OSInAppMessageWillDisplayEvent` | IAM will display |
-| `OSInAppMessageDidDisplayEvent` | IAM did display |
-| `OSInAppMessageWillDismissEvent` | IAM will dismiss |
-| `OSInAppMessageDidDismissEvent` | IAM did dismiss |
-| `OSErrorEvent` | Error occurred |
-
----
-
-## Log Levels
+### Enums
 
 ```python
 class OSLogLevel(Enum):
@@ -375,31 +669,70 @@ class OSLogLevel(Enum):
 
 ## Migration from v0.3.x
 
-If you're upgrading from version 0.3.x, here are the key changes:
+If upgrading from version 0.3.x, note these breaking changes:
 
-| v0.3.x | v0.4.0 |
-|--------|--------|
-| `OneSignalSettings(app_id=...)` | `OneSignal(app_id=...)` |
+| v0.3.x (Old) | v0.4.0 (New) |
+|--------------|--------------|
+| `fos.OneSignalSettings(app_id=...)` | `fos.OneSignal(app_id=...)` |
 | `onesignal.get_onesignal_id()` | `await onesignal.user.get_onesignal_id()` |
+| `onesignal.get_external_user_id()` | `await onesignal.user.get_external_id()` |
 | `onesignal.login(id)` | `await onesignal.login(id)` |
+| `onesignal.logout()` | `await onesignal.logout()` |
 | `onesignal.set_language(code)` | `await onesignal.user.set_language(code)` |
+| `onesignal.add_alias(alias, id)` | `await onesignal.user.add_alias(label, id)` |
 | `onesignal.request_permission()` | `await onesignal.notifications.request_permission()` |
+| `onesignal.clear_all_notifications()` | `await onesignal.notifications.clear_all()` |
 | `on_notification_opened` | `on_notification_click` |
 | `on_notification_received` | `on_notification_foreground` |
+| `on_click_in_app_messages` | `on_iam_click` |
 | `ft.app(target=main)` | `ft.run(main)` |
 
-All methods are now **async-only** (no `_async` suffix).
+**Key changes:**
+- All methods are now **async-only** (no `_async` suffix)
+- Methods are organized into **sub-modules** (`.user`, `.notifications`, etc.)
+- Uses `ft.Service` base class instead of `Control`
+- New event types with structured data
+
+---
+
+## Troubleshooting
+
+### Notifications not appearing
+
+1. Verify your OneSignal App ID is correct
+2. Check that you've requested and received notification permission
+3. Ensure platform certificates (APNs/FCM) are configured in OneSignal dashboard
+4. Check device logs for any SDK errors
+
+### App crashes on startup
+
+1. Verify minimum SDK versions are met
+2. Check that the OneSignal is added to `page.overlay`
+3. Review the `on_error` handler for any initialization errors
+
+### Tags not syncing
+
+1. Tags are synced asynchronously - allow a few seconds
+2. Check your network connection
+3. Verify tags in the OneSignal dashboard under Users
 
 ---
 
 ## Contributing
-Contributions and feedback are welcome!
 
-#### To contribute:
+Contributions are welcome! To contribute:
 
-1. **Fork the repository.**
-2. **Create a feature branch.**
-3. **Submit a pull request with a detailed explanation of your changes.**
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 

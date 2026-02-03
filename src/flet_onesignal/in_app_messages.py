@@ -98,7 +98,7 @@ class OneSignalInAppMessages:
             {"paused": paused},
         )
 
-    async def is_paused(self, wait_timeout: float = 25) -> bool:
+    async def is_paused(self, timeout: float = 25) -> bool:
         """
         Check if in-app messages are currently paused.
 
@@ -107,8 +107,7 @@ class OneSignalInAppMessages:
         """
         result = await self._service._invoke_method(
             "iam_is_paused",
-            wait_for_result=True,
-            wait_timeout=wait_timeout,
+            timeout=timeout,
         )
         return result == "true"
 

@@ -58,7 +58,7 @@ async def main(page: ft.Page):
 
     # List view for event logs
     log_list = ft.ListView(
-        padding=ft.padding.all(10),
+        padding=ft.Padding.all(10),
         spacing=5,
         expand=True,
         auto_scroll=True,
@@ -126,6 +126,7 @@ async def main(page: ft.Page):
     onesignal = fos.OneSignal(
         app_id=ONESIGNAL_APP_ID,
         log_level=fos.OSLogLevel.DEBUG,
+        visual_alert_level=fos.OSLogLevel.DEBUG,
         on_notification_click=on_notification_click,
         on_notification_foreground=on_notification_foreground,
         on_permission_change=on_permission_change,
@@ -139,8 +140,8 @@ async def main(page: ft.Page):
         on_error=on_error,
     )
 
-    # Add to page overlay
-    page.overlay.append(onesignal)
+    # Add to page services (NOT overlay - services are not visual controls)
+    page.services.append(onesignal)
 
     # -------------------------------------------------------------------------
     # Button handlers (imperative API usage)
@@ -245,8 +246,8 @@ async def main(page: ft.Page):
     # ID action buttons
     id_buttons = ft.Row(
         controls=[
-            ft.ElevatedButton("Get OneSignal ID", on_click=get_onesignal_id),
-            ft.ElevatedButton("Get External ID", on_click=get_external_id),
+            ft.Button("Get OneSignal ID", on_click=get_onesignal_id),
+            ft.Button("Get External ID", on_click=get_external_id),
         ],
         spacing=10,
         wrap=True,
@@ -256,8 +257,8 @@ async def main(page: ft.Page):
     login_row = ft.Row(
         controls=[
             external_id_input,
-            ft.ElevatedButton("Login", on_click=login),
-            ft.ElevatedButton("Logout", on_click=logout),
+            ft.Button("Login", on_click=login),
+            ft.Button("Logout", on_click=logout),
         ],
         spacing=10,
     )
@@ -265,9 +266,9 @@ async def main(page: ft.Page):
     # Permission and language row
     settings_row = ft.Row(
         controls=[
-            ft.ElevatedButton("Request Permission", on_click=request_permission),
+            ft.Button("Request Permission", on_click=request_permission),
             language_input,
-            ft.ElevatedButton("Set Language", on_click=set_language),
+            ft.Button("Set Language", on_click=set_language),
         ],
         spacing=10,
         wrap=True,
@@ -278,9 +279,9 @@ async def main(page: ft.Page):
         controls=[
             tag_key_input,
             tag_value_input,
-            ft.ElevatedButton("Add Tag", on_click=add_tag),
-            ft.ElevatedButton("Remove Tag", on_click=remove_tag),
-            ft.ElevatedButton("Get Tags", on_click=get_tags),
+            ft.Button("Add Tag", on_click=add_tag),
+            ft.Button("Remove Tag", on_click=remove_tag),
+            ft.Button("Get Tags", on_click=get_tags),
         ],
         spacing=10,
         wrap=True,
@@ -289,38 +290,36 @@ async def main(page: ft.Page):
     # Push subscription row
     push_row = ft.Row(
         controls=[
-            ft.ElevatedButton("Opt In Push", on_click=opt_in_push),
-            ft.ElevatedButton("Opt Out Push", on_click=opt_out_push),
-            ft.ElevatedButton("Clear Notifications", on_click=clear_notifications),
+            ft.Button("Opt In Push", on_click=opt_in_push),
+            ft.Button("Opt Out Push", on_click=opt_out_push),
+            ft.Button("Clear Notifications", on_click=clear_notifications),
         ],
         spacing=10,
         wrap=True,
     )
 
-    # Log section
+    # Log section with fixed height for scrollable parent
     log_section = ft.Container(
         content=ft.Column(
             controls=[
                 ft.Row(
                     controls=[
                         ft.Text("Event Logs", weight=ft.FontWeight.BOLD),
-                        ft.ElevatedButton("Clear", on_click=clear_logs),
+                        ft.Button("Clear", on_click=clear_logs),
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
                 ft.Container(
                     content=log_list,
-                    border=ft.border.all(1, ft.Colors.GREY_400),
+                    border=ft.Border.all(1, ft.Colors.GREY_400),
                     border_radius=5,
-                    expand=True,
+                    height=200,
                 ),
             ],
-            expand=True,
         ),
-        expand=True,
     )
 
-    # Add all controls to page
+    # Add all controls to page with scroll enabled
     page.add(
         ft.Column(
             controls=[
@@ -339,6 +338,7 @@ async def main(page: ft.Page):
             ],
             expand=True,
             spacing=10,
+            scroll=ft.ScrollMode.AUTO,
         )
     )
 

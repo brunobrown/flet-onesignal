@@ -9,7 +9,7 @@ class Extension extends FletExtension {
   @override
   FletService? createService(Control control) {
     switch (control.type) {
-      case "onesignal":
+      case "OneSignal":
         return OneSignalService(control: control);
       default:
         return null;

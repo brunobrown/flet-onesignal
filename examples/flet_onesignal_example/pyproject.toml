@@ -9,14 +9,18 @@ authors = [
 ]
 
 dependencies = [
-    "flet>=0.26.0",
-    "flet-onesignal>=0.2.0",
+    "flet>=0.80.5",
 ]
 
 [tool.uv]
 dev-dependencies = [
-    "flet[all]>=0.26.0",
+    "flet[all]>=0.80.5",
 ]
 
-[tool.poetry.group.dev.dependencies]
-flet = {extras = ["all"], version = "0.26.0"}
+[tool.uv.sources]
+flet-onesignal = { path = "../../", editable = true }
+
+[dependency-groups]
+dev = [
+    "flet-onesignal",
+]

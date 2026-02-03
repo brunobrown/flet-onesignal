@@ -144,8 +144,8 @@ async def main(page: ft.Page):
         log_level=fos.OSLogLevel.DEBUG,  # Enable debug logging
     )
 
-    # Add to page overlay (required for services)
-    page.overlay.append(onesignal)
+    # Add to page services (required for Flet 0.80.x services)
+    page.services.append(onesignal)
 
     # Request notification permission
     permission_granted = await onesignal.notifications.request_permission()
@@ -718,26 +718,35 @@ If upgrading from version 0.3.x, note these breaking changes:
 
 ---
 
-## Contributing
+## 🌐 Community
 
-Contributions are welcome! To contribute:
+Join the community to contribute or get help:
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- [Discord](https://discord.gg/dzWXP8SHG8)
+- [GitHub Issues](https://github.com/brunobrown/flet-asp/issues)
+
+## ⭐ Support
+
+If you like this project, please give it a [GitHub star](https://github.com/brunobrown/flet-asp) ⭐
 
 ---
 
-## License
+## 🤝 Contributing
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Contributions and feedback are welcome!
+
+1. Fork the repository
+2. Create a feature branch
+3. Submit a pull request with detailed explanation
+
+For feedback, [open an issue](https://github.com/brunobrown/flet-asp/issues) with your suggestions.
 
 ---
 
 ## Try **flet-onesignal** today and enhance your Flet apps with push notifications!
 
-<img src="https://logging-discord.readthedocs.io/en/latest/img/proverbs_16_3.jpg" width="500">
+---
 
-[Commit your work to the LORD, and your plans will succeed. Proverbs 16: 3](https://www.bible.com/bible/116/PRO.16.NLT)
+<p align="center"><img src="https://github.com/user-attachments/assets/431aa05f-5fbc-4daa-9689-b9723583e25a" width="50%"></p>
+<p align="center"><a href="https://www.bible.com/bible/116/PRO.16.NLT"> Commit your work to the LORD, and your plans will succeed. Proverbs 16:3</a></p>
+

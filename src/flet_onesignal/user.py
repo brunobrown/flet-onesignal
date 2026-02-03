@@ -22,7 +22,7 @@ class OneSignalUser:
     # Identity
     # -------------------------------------------------------------------------
 
-    async def get_onesignal_id(self, wait_timeout: float = 25) -> Optional[str]:
+    async def get_onesignal_id(self, timeout: float = 25) -> Optional[str]:
         """
         Get the OneSignal ID for the current user.
 
@@ -31,12 +31,11 @@ class OneSignalUser:
         """
         result = await self._service._invoke_method(
             "user_get_onesignal_id",
-            wait_for_result=True,
-            wait_timeout=wait_timeout,
+            timeout=timeout,
         )
         return result if result else None
 
-    async def get_external_id(self, wait_timeout: float = 25) -> Optional[str]:
+    async def get_external_id(self, timeout: float = 25) -> Optional[str]:
         """
         Get the external ID for the current user.
 
@@ -45,8 +44,7 @@ class OneSignalUser:
         """
         result = await self._service._invoke_method(
             "user_get_external_id",
-            wait_for_result=True,
-            wait_timeout=wait_timeout,
+            timeout=timeout,
         )
         return result if result else None
 
@@ -103,7 +101,7 @@ class OneSignalUser:
             {"keys": keys},
         )
 
-    async def get_tags(self, wait_timeout: float = 25) -> dict[str, str]:
+    async def get_tags(self, timeout: float = 25) -> dict[str, str]:
         """
         Get all tags for the current user.
 
@@ -112,8 +110,7 @@ class OneSignalUser:
         """
         result = await self._service._invoke_method(
             "user_get_tags",
-            wait_for_result=True,
-            wait_timeout=wait_timeout,
+            timeout=timeout,
         )
         if isinstance(result, dict):
             return result
@@ -267,7 +264,7 @@ class OneSignalUser:
         """
         await self._service._invoke_method("user_push_opt_out")
 
-    async def get_push_subscription_id(self, wait_timeout: float = 25) -> Optional[str]:
+    async def get_push_subscription_id(self, timeout: float = 25) -> Optional[str]:
         """
         Get the push subscription ID.
 
@@ -276,12 +273,11 @@ class OneSignalUser:
         """
         result = await self._service._invoke_method(
             "user_get_push_subscription_id",
-            wait_for_result=True,
-            wait_timeout=wait_timeout,
+            timeout=timeout,
         )
         return result if result else None
 
-    async def get_push_subscription_token(self, wait_timeout: float = 25) -> Optional[str]:
+    async def get_push_subscription_token(self, timeout: float = 25) -> Optional[str]:
         """
         Get the push subscription token.
 
@@ -290,12 +286,11 @@ class OneSignalUser:
         """
         result = await self._service._invoke_method(
             "user_get_push_subscription_token",
-            wait_for_result=True,
-            wait_timeout=wait_timeout,
+            timeout=timeout,
         )
         return result if result else None
 
-    async def is_push_opted_in(self, wait_timeout: float = 25) -> bool:
+    async def is_push_opted_in(self, timeout: float = 25) -> bool:
         """
         Check if the user is opted in to push notifications.
 
@@ -304,7 +299,6 @@ class OneSignalUser:
         """
         result = await self._service._invoke_method(
             "user_is_push_opted_in",
-            wait_for_result=True,
-            wait_timeout=wait_timeout,
+            timeout=timeout,
         )
         return result == "true"

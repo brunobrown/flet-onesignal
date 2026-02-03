@@ -26,7 +26,7 @@ class OneSignalNotifications:
     async def request_permission(
         self,
         fallback_to_settings: bool = True,
-        wait_timeout: float = 25,
+        timeout: float = 25,
     ) -> bool:
         """
         Request permission to send push notifications.
@@ -37,7 +37,7 @@ class OneSignalNotifications:
         Args:
             fallback_to_settings: If True and permission was previously denied,
                                   opens the app settings instead.
-            wait_timeout: Maximum time to wait for user response (in seconds).
+            timeout: Maximum time to wait for user response (in seconds).
 
         Returns:
             True if permission was granted, False otherwise.
@@ -45,12 +45,11 @@ class OneSignalNotifications:
         result = await self._service._invoke_method(
             "notifications_request_permission",
             {"fallback_to_settings": fallback_to_settings},
-            wait_for_result=True,
-            wait_timeout=wait_timeout,
+            timeout=timeout,
         )
         return result == "true"
 
-    async def can_request_permission(self, wait_timeout: float = 25) -> bool:
+    async def can_request_permission(self, timeout: float = 25) -> bool:
         """
         Check if the app can request notification permission.
 
@@ -62,12 +61,11 @@ class OneSignalNotifications:
         """
         result = await self._service._invoke_method(
             "notifications_can_request_permission",
-            wait_for_result=True,
-            wait_timeout=wait_timeout,
+            timeout=timeout,
         )
         return result == "true"
 
-    async def get_permission(self, wait_timeout: float = 25) -> bool:
+    async def get_permission(self, timeout: float = 25) -> bool:
         """
         Get the current notification permission status.
 
@@ -76,12 +74,11 @@ class OneSignalNotifications:
         """
         result = await self._service._invoke_method(
             "notifications_get_permission",
-            wait_for_result=True,
-            wait_timeout=wait_timeout,
+            timeout=timeout,
         )
         return result == "true"
 
-    async def register_for_provisional_authorization(self, wait_timeout: float = 25) -> bool:
+    async def register_for_provisional_authorization(self, timeout: float = 25) -> bool:
         """
         Request provisional authorization for notifications (iOS only).
 
@@ -93,8 +90,7 @@ class OneSignalNotifications:
         """
         result = await self._service._invoke_method(
             "notifications_register_provisional",
-            wait_for_result=True,
-            wait_timeout=wait_timeout,
+            timeout=timeout,
         )
         return result == "true"
 

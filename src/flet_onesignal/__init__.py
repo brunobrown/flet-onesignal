@@ -11,8 +11,7 @@ Example:
 
     async def main(page: ft.Page):
         onesignal = fos.OneSignal(app_id="your-app-id")
-        page.overlay.append(onesignal)
-        await page.update_async()
+        page.services.append(onesignal)  # Use services, NOT overlay!
 
         # Request notification permission
         granted = await onesignal.notifications.request_permission()
@@ -41,7 +40,6 @@ from flet_onesignal.types import (
     OSInAppMessageClickResult,
     OSInAppMessageDidDismissEvent,
     OSInAppMessageDidDisplayEvent,
-    OSInAppMessageEvent,
     OSInAppMessageWillDismissEvent,
     OSInAppMessageWillDisplayEvent,
     OSLogLevel,
@@ -78,7 +76,6 @@ __all__ = [
     # In-App Message events
     "OSInAppMessageClickEvent",
     "OSInAppMessageClickResult",
-    "OSInAppMessageEvent",
     "OSInAppMessageWillDisplayEvent",
     "OSInAppMessageDidDisplayEvent",
     "OSInAppMessageWillDismissEvent",

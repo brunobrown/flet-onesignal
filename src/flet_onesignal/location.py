@@ -18,7 +18,7 @@ class OneSignalLocation:
     def __init__(self, service: "OneSignal"):
         self._service = service
 
-    async def request_permission(self, wait_timeout: float = 25) -> bool:
+    async def request_permission(self, timeout: float = 25) -> bool:
         """
         Request permission to access location.
 
@@ -27,8 +27,7 @@ class OneSignalLocation:
         """
         result = await self._service._invoke_method(
             "location_request_permission",
-            wait_for_result=True,
-            wait_timeout=wait_timeout,
+            timeout=timeout,
         )
         return result == "true"
 
@@ -44,7 +43,7 @@ class OneSignalLocation:
             {"shared": shared},
         )
 
-    async def is_shared(self, wait_timeout: float = 25) -> bool:
+    async def is_shared(self, timeout: float = 25) -> bool:
         """
         Check if location is currently being shared with OneSignal.
 
@@ -53,7 +52,6 @@ class OneSignalLocation:
         """
         result = await self._service._invoke_method(
             "location_is_shared",
-            wait_for_result=True,
-            wait_timeout=wait_timeout,
+            timeout=timeout,
         )
         return result == "true"

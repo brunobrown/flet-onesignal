@@ -2,12 +2,14 @@
 Types, enums, and dataclasses for flet-onesignal.
 """
 
-import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
-from flet.core.control_event import ControlEvent
+import flet as ft
+
+if TYPE_CHECKING:
+    from flet_onesignal.onesignal import OneSignal
 
 
 class OSLogLevel(Enum):
@@ -28,43 +30,26 @@ class OSLogLevel(Enum):
 
 
 @dataclass
-class OSNotificationClickEvent(ControlEvent):
+class OSNotificationClickEvent(ft.Event["OneSignal"]):
     """Event fired when a user clicks on a notification."""
 
-    notification: dict = field(default_factory=dict)
+    notification: dict
     action_id: Optional[str] = None
 
-    def __init__(self, e: ControlEvent):
-        super().__init__(e.target, e.name, e.data, e.control, e.page)
-        data = json.loads(e.data) if e.data else {}
-        self.notification = data.get("notification", {})
-        self.action_id = data.get("action_id")
-
 
 @dataclass
-class OSNotificationWillDisplayEvent(ControlEvent):
+class OSNotificationWillDisplayEvent(ft.Event["OneSignal"]):
     """Event fired when a notification is about to be displayed in foreground."""
 
-    notification: dict = field(default_factory=dict)
+    notification: dict
     notification_id: Optional[str] = None
-
-    def __init__(self, e: ControlEvent):
-        super().__init__(e.target, e.name, e.data, e.control, e.page)
-        data = json.loads(e.data) if e.data else {}
-        self.notification = data.get("notification", {})
-        self.notification_id = data.get("notification_id")
 
 
 @dataclass
-class OSPermissionChangeEvent(ControlEvent):
+class OSPermissionChangeEvent(ft.Event["OneSignal"]):
     """Event fired when notification permission status changes."""
 
     permission: bool = False
-
-    def __init__(self, e: ControlEvent):
-        super().__init__(e.target, e.name, e.data, e.control, e.page)
-        data = json.loads(e.data) if e.data else {}
-        self.permission = data.get("permission", False)
 
 
 # -----------------------------------------------------------------------------
@@ -81,34 +66,28 @@ class OSUserState:
 
 
 @dataclass
-class OSUserChangedEvent(ControlEvent):
+class OSUserChangedEvent(ft.Event["OneSignal"]):
     """Event fired when the user state changes."""
 
-    state: OSUserState = field(default_factory=OSUserState)
+    onesignal_id: Optional[str] = None
+    external_id: Optional[str] = None
 
-    def __init__(self, e: ControlEvent):
-        super().__init__(e.target, e.name, e.data, e.control, e.page)
-        data = json.loads(e.data) if e.data else {}
-        self.state = OSUserState(
-            onesignal_id=data.get("onesignal_id"),
-            external_id=data.get("external_id"),
+    @property
+    def state(self) -> OSUserState:
+        """Get the user state as an OSUserState object."""
+        return OSUserState(
+            onesignal_id=self.onesignal_id,
+            external_id=self.external_id,
         )
 
 
 @dataclass
-class OSPushSubscriptionChangedEvent(ControlEvent):
+class OSPushSubscriptionChangedEvent(ft.Event["OneSignal"]):
     """Event fired when push subscription state changes."""
 
     id: Optional[str] = None
     token: Optional[str] = None
     opted_in: bool = False
-
-    def __init__(self, e: ControlEvent):
-        super().__init__(e.target, e.name, e.data, e.control, e.page)
-        data = json.loads(e.data) if e.data else {}
-        self.id = data.get("id")
-        self.token = data.get("token")
-        self.opted_in = data.get("opted_in", False)
 
 
 # -----------------------------------------------------------------------------
@@ -127,59 +106,52 @@ class OSInAppMessageClickResult:
 
 
 @dataclass
-class OSInAppMessageClickEvent(ControlEvent):
+class OSInAppMessageClickEvent(ft.Event["OneSignal"]):
     """Event fired when a user clicks on an in-app message."""
 
-    message: dict = field(default_factory=dict)
-    result: OSInAppMessageClickResult = field(default_factory=OSInAppMessageClickResult)
+    message: dict = None
+    action_id: Optional[str] = None
+    url: Optional[str] = None
+    url_target: Optional[str] = None
+    closing_message: bool = False
 
-    def __init__(self, e: ControlEvent):
-        super().__init__(e.target, e.name, e.data, e.control, e.page)
-        data = json.loads(e.data) if e.data else {}
-        self.message = data.get("message", {})
-        result_data = data.get("result", {})
-        self.result = OSInAppMessageClickResult(
-            action_id=result_data.get("action_id"),
-            url=result_data.get("url"),
-            url_target=result_data.get("url_target"),
-            closing_message=result_data.get("closing_message", False),
+    @property
+    def result(self) -> OSInAppMessageClickResult:
+        """Get the click result as an OSInAppMessageClickResult object."""
+        return OSInAppMessageClickResult(
+            action_id=self.action_id,
+            url=self.url,
+            url_target=self.url_target,
+            closing_message=self.closing_message,
         )
 
 
 @dataclass
-class OSInAppMessageEvent(ControlEvent):
-    """Base event for in-app message lifecycle events."""
-
-    message: dict = field(default_factory=dict)
-
-    def __init__(self, e: ControlEvent):
-        super().__init__(e.target, e.name, e.data, e.control, e.page)
-        data = json.loads(e.data) if e.data else {}
-        self.message = data.get("message", {})
-
-
-class OSInAppMessageWillDisplayEvent(OSInAppMessageEvent):
+class OSInAppMessageWillDisplayEvent(ft.Event["OneSignal"]):
     """Event fired before an in-app message is displayed."""
 
-    pass
+    message: dict = None
 
 
-class OSInAppMessageDidDisplayEvent(OSInAppMessageEvent):
+@dataclass
+class OSInAppMessageDidDisplayEvent(ft.Event["OneSignal"]):
     """Event fired after an in-app message is displayed."""
 
-    pass
+    message: dict = None
 
 
-class OSInAppMessageWillDismissEvent(OSInAppMessageEvent):
+@dataclass
+class OSInAppMessageWillDismissEvent(ft.Event["OneSignal"]):
     """Event fired before an in-app message is dismissed."""
 
-    pass
+    message: dict = None
 
 
-class OSInAppMessageDidDismissEvent(OSInAppMessageEvent):
+@dataclass
+class OSInAppMessageDidDismissEvent(ft.Event["OneSignal"]):
     """Event fired after an in-app message is dismissed."""
 
-    pass
+    message: dict = None
 
 
 # -----------------------------------------------------------------------------
@@ -188,16 +160,9 @@ class OSInAppMessageDidDismissEvent(OSInAppMessageEvent):
 
 
 @dataclass
-class OSErrorEvent(ControlEvent):
+class OSErrorEvent(ft.Event["OneSignal"]):
     """Event fired when an error occurs."""
 
     method: Optional[str] = None
     message: Optional[str] = None
     stack_trace: Optional[str] = None
-
-    def __init__(self, e: ControlEvent):
-        super().__init__(e.target, e.name, e.data, e.control, e.page)
-        data = json.loads(e.data) if e.data else {}
-        self.method = data.get("method")
-        self.message = data.get("message")
-        self.stack_trace = data.get("stackTrace")

@@ -2,6 +2,7 @@
 OneSignal User module for flet-onesignal.
 """
 
+import json
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
@@ -112,6 +113,11 @@ class OneSignalUser:
             "user_get_tags",
             timeout=timeout,
         )
+        if isinstance(result, str):
+            try:
+                return json.loads(result)
+            except json.JSONDecodeError:
+                return {}
         if isinstance(result, dict):
             return result
         return {}

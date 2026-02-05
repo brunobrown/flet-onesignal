@@ -16,6 +16,9 @@ class OneSignalService extends FletService {
   @override
   void init() {
     super.init();
+    print(">>> OneSignalService.init() called");
+    print(">>> OneSignalService: control.type = ${control.type}");
+    print(">>> OneSignalService: app_id = ${control.getString("app_id")}");
     control.addInvokeMethodListener(_onInvokeMethod);
     _initializeOneSignal();
   }
@@ -23,7 +26,7 @@ class OneSignalService extends FletService {
   @override
   Future<void> update() async {
     // Handle property updates if needed
-    final appId = control.getString("appId");
+    final appId = control.getString("app_id");
     if (appId != null && !_initialized) {
       _initializeOneSignal();
     }
@@ -37,37 +40,41 @@ class OneSignalService extends FletService {
 
   /// Initialize the OneSignal SDK with the app ID.
   void _initializeOneSignal() {
-    final appId = control.getString("appId");
+    final appId = control.getString("app_id");
     if (appId == null || appId.isEmpty) {
-      debugPrint("OneSignal: No app ID provided");
+      print(">>> OneSignal: No app_id provided");
       return;
     }
 
     try {
-      // Initialize OneSignal
-      OneSignal.initialize(appId);
-      _initialized = true;
-      debugPrint("OneSignal: Initialized with app ID: $appId");
-
-      // Set log level if provided
-      final logLevel = control.getString("logLevel");
+      // IMPORTANT: Set log level BEFORE initialization (per OneSignal docs)
+      final logLevel = control.getString("log_level");
       if (logLevel != null) {
         _setLogLevel(logLevel);
+        print(">>> OneSignal: Log level set to $logLevel");
       }
 
-      // Set visual alert level if provided
-      final visualAlertLevel = control.getString("visualAlertLevel");
+      // Set visual alert level BEFORE initialization
+      final visualAlertLevel = control.getString("visual_alert_level");
       if (visualAlertLevel != null) {
         _setAlertLevel(visualAlertLevel);
+        print(">>> OneSignal: Visual alert level set to $visualAlertLevel");
       }
 
-      // Handle consent requirement
-      final requireConsent = control.getBool("requireConsent", false)!;
+      // Handle consent requirement BEFORE initialization
+      final requireConsent = control.getBool("require_consent", false)!;
       if (requireConsent) {
         OneSignal.consentRequired(true);
+        print(">>> OneSignal: Consent required enabled");
       }
 
-      // Setup listeners
+      // Initialize OneSignal (AFTER setting log level)
+      print(">>> OneSignal: Initializing with app ID: $appId");
+      OneSignal.initialize(appId);
+      _initialized = true;
+      print(">>> OneSignal: Initialization complete");
+
+      // Setup listeners after initialization
       _setupListeners();
     } catch (error, stackTrace) {
       _handleError("_initializeOneSignal", error, stackTrace);
@@ -82,7 +89,7 @@ class OneSignalService extends FletService {
     // Notification click listener
     OneSignal.Notifications.addClickListener((event) {
       try {
-        debugPrint("OneSignal: Notification clicked");
+        print("OneSignal: Notification clicked");
         control.triggerEvent("notification_click", {
           "notification": event.notification.jsonRepresentation(),
           "action_id": event.result.actionId,
@@ -95,7 +102,7 @@ class OneSignalService extends FletService {
     // Notification foreground will display listener
     OneSignal.Notifications.addForegroundWillDisplayListener((event) {
       try {
-        debugPrint("OneSignal: Notification will display in foreground");
+        print("OneSignal: Notification will display in foreground");
         control.triggerEvent("notification_foreground", {
           "notification": event.notification.jsonRepresentation(),
           "notification_id": event.notification.notificationId,
@@ -108,7 +115,7 @@ class OneSignalService extends FletService {
     // Permission change listener
     OneSignal.Notifications.addPermissionObserver((permission) {
       try {
-        debugPrint("OneSignal: Permission changed to $permission");
+        print("OneSignal: Permission changed to $permission");
         control.triggerEvent("permission_change", {"permission": permission});
       } catch (error, stackTrace) {
         _handleError("permission_change_listener", error, stackTrace);
@@ -118,7 +125,7 @@ class OneSignalService extends FletService {
     // User state change listener
     OneSignal.User.addObserver((state) {
       try {
-        debugPrint("OneSignal: User state changed");
+        print("OneSignal: User state changed");
         control.triggerEvent("user_change", {
           "onesignal_id": state.current.onesignalId,
           "external_id": state.current.externalId,
@@ -131,7 +138,7 @@ class OneSignalService extends FletService {
     // Push subscription change listener
     OneSignal.User.pushSubscription.addObserver((state) {
       try {
-        debugPrint("OneSignal: Push subscription changed");
+        print("OneSignal: Push subscription changed");
         control.triggerEvent("push_subscription_change", {
           "id": state.current.id,
           "token": state.current.token,
@@ -145,7 +152,7 @@ class OneSignalService extends FletService {
     // In-App Message listeners
     OneSignal.InAppMessages.addClickListener((event) {
       try {
-        debugPrint("OneSignal: In-app message clicked");
+        print("OneSignal: In-app message clicked");
         control.triggerEvent("iam_click", {
           "message": jsonDecode(event.message.jsonRepresentation()),
           "result": jsonDecode(event.result.jsonRepresentation()),
@@ -157,7 +164,7 @@ class OneSignalService extends FletService {
 
     OneSignal.InAppMessages.addWillDisplayListener((event) {
       try {
-        debugPrint("OneSignal: In-app message will display");
+        print("OneSignal: In-app message will display");
         control.triggerEvent("iam_will_display", {
           "message": jsonDecode(event.message.jsonRepresentation()),
         });
@@ -168,7 +175,7 @@ class OneSignalService extends FletService {
 
     OneSignal.InAppMessages.addDidDisplayListener((event) {
       try {
-        debugPrint("OneSignal: In-app message did display");
+        print("OneSignal: In-app message did display");
         control.triggerEvent("iam_did_display", {
           "message": jsonDecode(event.message.jsonRepresentation()),
         });
@@ -179,7 +186,7 @@ class OneSignalService extends FletService {
 
     OneSignal.InAppMessages.addWillDismissListener((event) {
       try {
-        debugPrint("OneSignal: In-app message will dismiss");
+        print("OneSignal: In-app message will dismiss");
         control.triggerEvent("iam_will_dismiss", {
           "message": jsonDecode(event.message.jsonRepresentation()),
         });
@@ -190,7 +197,7 @@ class OneSignalService extends FletService {
 
     OneSignal.InAppMessages.addDidDismissListener((event) {
       try {
-        debugPrint("OneSignal: In-app message did dismiss");
+        print("OneSignal: In-app message did dismiss");
         control.triggerEvent("iam_did_dismiss", {
           "message": jsonDecode(event.message.jsonRepresentation()),
         });
@@ -199,14 +206,22 @@ class OneSignalService extends FletService {
       }
     });
 
-    debugPrint("OneSignal: All listeners setup complete");
+    print("OneSignal: All listeners setup complete");
   }
 
   /// Handle method invocations from Python.
   Future<dynamic> _onInvokeMethod(String methodName, dynamic args) async {
     try {
-      debugPrint("OneSignal: Invoking method $methodName with args $args");
-      final arguments = args is Map<String, dynamic> ? args : <String, dynamic>{};
+      print(">>> OneSignal._onInvokeMethod: method=$methodName");
+      print(">>> OneSignal._onInvokeMethod: args=$args (type: ${args.runtimeType})");
+
+      // Convert args to Map<String, dynamic> properly
+      // args can come as _Map<dynamic, dynamic> from Flet
+      Map<String, dynamic> arguments = {};
+      if (args != null && args is Map) {
+        arguments = Map<String, dynamic>.from(args);
+      }
+      print(">>> OneSignal._onInvokeMethod: arguments=$arguments");
 
       return switch (methodName) {
         // Main methods
@@ -353,10 +368,16 @@ class OneSignalService extends FletService {
   }
 
   Future<String?> _userAddTag(Map<String, dynamic> args) async {
+    print(">>> _userAddTag: args=$args");
     final key = args["key"] as String?;
     final value = args["value"] as String?;
+    print(">>> _userAddTag: key=$key, value=$value");
     if (key != null && value != null) {
+      print(">>> _userAddTag: calling OneSignal.User.addTagWithKey($key, $value)");
       await OneSignal.User.addTagWithKey(key, value);
+      print(">>> _userAddTag: success");
+    } else {
+      print(">>> _userAddTag: SKIPPED - key or value is null");
     }
     return null;
   }
@@ -370,9 +391,15 @@ class OneSignalService extends FletService {
   }
 
   Future<String?> _userRemoveTag(Map<String, dynamic> args) async {
+    print(">>> _userRemoveTag: args=$args");
     final key = args["key"] as String?;
+    print(">>> _userRemoveTag: key=$key");
     if (key != null) {
+      print(">>> _userRemoveTag: calling OneSignal.User.removeTag($key)");
       await OneSignal.User.removeTag(key);
+      print(">>> _userRemoveTag: success");
+    } else {
+      print(">>> _userRemoveTag: SKIPPED - key is null");
     }
     return null;
   }
@@ -386,8 +413,12 @@ class OneSignalService extends FletService {
   }
 
   Future<String?> _userGetTags() async {
+    print(">>> _userGetTags: calling OneSignal.User.getTags()");
     final tags = await OneSignal.User.getTags();
-    return jsonEncode(tags);
+    print(">>> _userGetTags: tags=$tags");
+    final result = jsonEncode(tags);
+    print(">>> _userGetTags: result=$result");
+    return result;
   }
 
   Future<String?> _userAddAlias(Map<String, dynamic> args) async {
@@ -456,9 +487,15 @@ class OneSignalService extends FletService {
   }
 
   Future<String?> _userSetLanguage(Map<String, dynamic> args) async {
+    print(">>> _userSetLanguage: args=$args");
     final language = args["language"] as String?;
+    print(">>> _userSetLanguage: language=$language");
     if (language != null) {
+      print(">>> _userSetLanguage: calling OneSignal.User.setLanguage($language)");
       await OneSignal.User.setLanguage(language);
+      print(">>> _userSetLanguage: success");
+    } else {
+      print(">>> _userSetLanguage: SKIPPED - language is null");
     }
     return null;
   }
@@ -697,7 +734,8 @@ class OneSignalService extends FletService {
   // ---------------------------------------------------------------------------
 
   void _handleError(String method, Object error, StackTrace stackTrace) {
-    debugPrint("OneSignal Error in $method: $error\n$stackTrace");
+    print(">>> OneSignal ERROR in $method: $error");
+    print(">>> StackTrace: $stackTrace");
     control.triggerEvent("error", {
       "method": method,
       "message": error.toString(),

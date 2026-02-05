@@ -6,7 +6,7 @@ applications using the Flet 0.80.x extension pattern.
 """
 
 from dataclasses import field
-from typing import Optional
+from typing import Any, Optional
 
 import flet as ft
 
@@ -94,11 +94,17 @@ class OneSignal(ft.Service):
     # Internal sub-modules (not sent to Flutter)
     _debug: OneSignalDebug = field(default=None, init=False, metadata={"skip": True})
     _user: OneSignalUser = field(default=None, init=False, metadata={"skip": True})
-    _notifications: OneSignalNotifications = field(default=None, init=False, metadata={"skip": True})
-    _in_app_messages: OneSignalInAppMessages = field(default=None, init=False, metadata={"skip": True})
+    _notifications: OneSignalNotifications = field(
+        default=None, init=False, metadata={"skip": True}
+    )
+    _in_app_messages: OneSignalInAppMessages = field(
+        default=None, init=False, metadata={"skip": True}
+    )
     _location: OneSignalLocation = field(default=None, init=False, metadata={"skip": True})
     _session: OneSignalSession = field(default=None, init=False, metadata={"skip": True})
-    _live_activities: OneSignalLiveActivities = field(default=None, init=False, metadata={"skip": True})
+    _live_activities: OneSignalLiveActivities = field(
+        default=None, init=False, metadata={"skip": True}
+    )
 
     def init(self):
         """Initialize the service and sub-modules."""
@@ -217,13 +223,18 @@ class OneSignal(ft.Service):
     async def _invoke_method(
         self,
         method_name: str,
-        arguments: Optional[dict] = None,
-        timeout: float = 25,
-    ) -> Optional[str]:
+        arguments: Optional[dict[str, Any]] = None,
+        timeout: Optional[float] = None,
+    ) -> Any:
         """
         Internal method for invoking Flutter methods.
 
         This is used by sub-modules to communicate with the Dart side.
+
+        Args:
+            method_name: Name of the method to invoke on the Dart side.
+            arguments: Dictionary of arguments to pass to the method.
+            timeout: Timeout in seconds. Defaults to 25 if None.
 
         Raises:
             FletUnsupportedPlatformException: If called on unsupported platform.
@@ -237,9 +248,12 @@ class OneSignal(ft.Service):
                 f"Method '{method_name}' cannot be executed."
             )
 
+        # Use default timeout if not provided
+        effective_timeout = timeout if timeout is not None else 25.0
+
         # Call parent's _invoke_method from BaseControl
         return await super()._invoke_method(
             method_name=method_name,
             arguments=arguments or {},
-            timeout=timeout,
+            timeout=effective_timeout,
         )

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Optional
 import flet as ft
 
 if TYPE_CHECKING:
-    from flet_onesignal.onesignal import OneSignal
+    pass
 
 
 class OSLogLevel(Enum):

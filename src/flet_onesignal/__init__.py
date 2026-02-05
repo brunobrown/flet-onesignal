@@ -20,6 +20,13 @@ Example:
     ```
 """
 
+# Debug console for development
+from flet_onesignal.console import (
+    DebugConsole,
+    LogLevel,
+    setup_logging,
+)
+
 # Main service
 # Sub-modules (can also be accessed via OneSignal instance)
 from flet_onesignal.debug import OneSignalDebug
@@ -63,6 +70,10 @@ __all__ = [
     "OneSignalLocation",
     "OneSignalSession",
     "OneSignalLiveActivities",
+    # Debug console
+    "DebugConsole",
+    "LogLevel",
+    "setup_logging",
     # Types and enums
     "OSLogLevel",
     "OSUserState",

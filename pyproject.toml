@@ -14,6 +14,11 @@ dependencies = [
     "flet>=0.80.5",
 ]
 
+[project.optional-dependencies]
+build = [
+    "watchdog>=3.0.0",
+]
+
 [dependency-groups]
 dev = [
     "flet[all]>=0.80.5",
@@ -68,6 +73,9 @@ invalid-assignment = "ignore"
 # Warnings de atributos possivelmente faltando
 possibly-missing-attribute = "ignore"
 
+# Forward references em TYPE_CHECKING (ex: ft.Event["OneSignal"])
+unresolved-reference = "ignore"
+
 [tool.ty.terminal]
 output-format = "concise"  # Links clicáveis no terminal
 #error-on-warning = false   # Opcional: não retornar erro em warnings
@@ -96,6 +104,9 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
+
+[project.scripts]
+fos-build = "flet_onesignal.build:main"
 
 [project.urls]
 Homepage = "https://github.com/brunobrown/flet-onesignal"

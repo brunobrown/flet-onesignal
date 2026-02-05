@@ -5,6 +5,8 @@ This example shows both imperative and event-driven patterns for using
 the OneSignal SDK with Flet applications.
 """
 
+import logging
+
 import flet as ft
 
 import flet_onesignal as fos
@@ -12,15 +14,25 @@ import flet_onesignal as fos
 # Replace with your actual OneSignal App ID
 ONESIGNAL_APP_ID = "example-123a-12a3-1a23-abcd1ef23g45"
 
+# Setup logging to write to FLET_APP_CONSOLE
+logger = fos.setup_logging(level=logging.DEBUG)
+
 
 async def main(page: ft.Page):
     """Main application entry point."""
 
     page.title = "OneSignal Test"
+
+    # -------------------------------------------------------------------------
+    # Debug Console - Shows Python logs in the app
+    # -------------------------------------------------------------------------
+    debug_console = fos.DebugConsole(title="App Logs")
+
     page.appbar = ft.AppBar(
         title=ft.Text("OneSignal Test"),
         bgcolor=ft.Colors.BLUE_700,
         color=ft.Colors.WHITE,
+        actions=[debug_console.icon],  # Debug icon in AppBar
     )
 
     # Text fields for displaying data
@@ -55,8 +67,18 @@ async def main(page: ft.Page):
         hint_text="value",
         width=150,
     )
+    trigger_key_input = ft.TextField(
+        label="Trigger Key",
+        hint_text="show_promo",
+        width=150,
+    )
+    trigger_value_input = ft.TextField(
+        label="Trigger Value",
+        hint_text="true",
+        width=150,
+    )
 
-    # List view for event logs
+    # List view for event logs (OneSignal events)
     log_list = ft.ListView(
         padding=ft.Padding.all(10),
         spacing=5,
@@ -64,10 +86,22 @@ async def main(page: ft.Page):
         auto_scroll=True,
     )
 
-    def add_log(message: str):
-        """Add a message to the log list."""
-        log_list.controls.append(ft.Text(message, size=12, selectable=True))
+    def add_log(message: str, level: fos.LogLevel = fos.LogLevel.INFO):
+        """Add a message to the log list and debug console."""
+        # Add to visual log list
+        color = level.color
+        log_list.controls.append(ft.Text(message, size=12, selectable=True, color=color))
         page.update()
+
+        # Also log to Python logger (will appear in debug console)
+        if level == fos.LogLevel.ERROR:
+            logger.error(message)
+        elif level == fos.LogLevel.WARNING:
+            logger.warning(message)
+        elif level == fos.LogLevel.DEBUG:
+            logger.debug(message)
+        else:
+            logger.info(message)
 
     # -------------------------------------------------------------------------
     # Event handlers
@@ -117,7 +151,7 @@ async def main(page: ft.Page):
 
     def on_error(e: fos.OSErrorEvent):
         """Handle error events."""
-        add_log(f"[Error] {e.method}: {e.message}")
+        add_log(f"[Error] {e.method}: {e.message}", fos.LogLevel.ERROR)
 
     # -------------------------------------------------------------------------
     # Create OneSignal service with event handlers
@@ -125,8 +159,8 @@ async def main(page: ft.Page):
 
     onesignal = fos.OneSignal(
         app_id=ONESIGNAL_APP_ID,
-        log_level=fos.OSLogLevel.DEBUG,
-        visual_alert_level=fos.OSLogLevel.DEBUG,
+        log_level=fos.OSLogLevel.DEBUG,  # Console/logcat logs
+        # visual_alert_level removed - it causes popup spam on screen!
         on_notification_click=on_notification_click,
         on_notification_foreground=on_notification_foreground,
         on_permission_change=on_permission_change,
@@ -142,6 +176,10 @@ async def main(page: ft.Page):
 
     # Add to page services (NOT overlay - services are not visual controls)
     page.services.append(onesignal)
+
+    # Log platform info
+    logger.info(f"Platform: {page.platform}")
+    logger.info(f"OneSignal App ID: {ONESIGNAL_APP_ID}")
 
     # -------------------------------------------------------------------------
     # Button handlers (imperative API usage)
@@ -165,7 +203,7 @@ async def main(page: ft.Page):
         """Login with external user ID."""
         user_id = external_id_input.value
         if not user_id:
-            add_log("Please enter an external user ID")
+            add_log("Please enter an external user ID", fos.LogLevel.WARNING)
             return
         await onesignal.login(user_id)
         add_log(f"Logged in as: {user_id}")
@@ -197,7 +235,7 @@ async def main(page: ft.Page):
             await onesignal.user.add_tag(key, value)
             add_log(f"Tag added: {key}={value}")
         else:
-            add_log("Please enter both tag key and value")
+            add_log("Please enter both tag key and value", fos.LogLevel.WARNING)
 
     async def remove_tag(e):
         """Remove a tag from the user."""
@@ -206,7 +244,7 @@ async def main(page: ft.Page):
             await onesignal.user.remove_tag(key)
             add_log(f"Tag removed: {key}")
         else:
-            add_log("Please enter a tag key to remove")
+            add_log("Please enter a tag key to remove", fos.LogLevel.WARNING)
 
     async def get_tags(e):
         """Get all tags for the user."""
@@ -228,10 +266,53 @@ async def main(page: ft.Page):
         await onesignal.notifications.clear_all()
         add_log("Notifications cleared")
 
+    async def add_trigger(e):
+        """Add an in-app message trigger."""
+        key = trigger_key_input.value
+        value = trigger_value_input.value
+        if key and value:
+            await onesignal.in_app_messages.add_trigger(key, value)
+            add_log(f"Trigger added: {key}={value}")
+        else:
+            add_log("Please enter both trigger key and value", fos.LogLevel.WARNING)
+
+    async def remove_trigger(e):
+        """Remove an in-app message trigger."""
+        key = trigger_key_input.value
+        if key:
+            await onesignal.in_app_messages.remove_trigger(key)
+            add_log(f"Trigger removed: {key}")
+        else:
+            add_log("Please enter a trigger key to remove", fos.LogLevel.WARNING)
+
+    async def clear_triggers(e):
+        """Clear all in-app message triggers."""
+        await onesignal.in_app_messages.clear_triggers()
+        add_log("All triggers cleared")
+
+    async def pause_iam(e):
+        """Pause in-app messages."""
+        await onesignal.in_app_messages.pause()
+        add_log("In-app messages paused")
+
+    async def resume_iam(e):
+        """Resume in-app messages."""
+        await onesignal.in_app_messages.resume()
+        add_log("In-app messages resumed")
+
     def clear_logs(e):
         """Clear the log list."""
         log_list.controls.clear()
         page.update()
+
+    async def copy_logs(e):
+        """Copy all logs to clipboard."""
+        logs = "\n".join(str(ctrl.value) for ctrl in log_list.controls if hasattr(ctrl, "value"))
+        if logs:
+            await ft.Clipboard().set(logs)
+            add_log("Logs copied to clipboard")
+        else:
+            add_log("No logs to copy", fos.LogLevel.WARNING)
 
     # -------------------------------------------------------------------------
     # Build UI
@@ -298,6 +379,29 @@ async def main(page: ft.Page):
         wrap=True,
     )
 
+    # In-App Messages row
+    iam_row = ft.Row(
+        controls=[
+            trigger_key_input,
+            trigger_value_input,
+            ft.Button("Add Trigger", on_click=add_trigger),
+            ft.Button("Remove Trigger", on_click=remove_trigger),
+            ft.Button("Clear Triggers", on_click=clear_triggers),
+        ],
+        spacing=10,
+        wrap=True,
+    )
+
+    # IAM control row
+    iam_control_row = ft.Row(
+        controls=[
+            ft.Button("Pause IAM", on_click=pause_iam),
+            ft.Button("Resume IAM", on_click=resume_iam),
+        ],
+        spacing=10,
+        wrap=True,
+    )
+
     # Log section with fixed height for scrollable parent
     log_section = ft.Container(
         content=ft.Column(
@@ -305,7 +409,13 @@ async def main(page: ft.Page):
                 ft.Row(
                     controls=[
                         ft.Text("Event Logs", weight=ft.FontWeight.BOLD),
-                        ft.Button("Clear", on_click=clear_logs),
+                        ft.Row(
+                            controls=[
+                                ft.Button("Copy", on_click=copy_logs),
+                                ft.Button("Clear", on_click=clear_logs),
+                            ],
+                            spacing=5,
+                        ),
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
@@ -333,6 +443,10 @@ async def main(page: ft.Page):
                 tags_row,
                 ft.Divider(),
                 push_row,
+                ft.Divider(),
+                ft.Text("In-App Messages", weight=ft.FontWeight.BOLD, size=14),
+                iam_row,
+                iam_control_row,
                 ft.Divider(),
                 log_section,
             ],

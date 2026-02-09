@@ -1,24 +1,15 @@
-"""
-Location page - Location sharing control.
-"""
+"""Location page."""
 
 import flet as ft
 from components.log_viewer import LogViewer
-from components.page_layout import PageLayout
 from context import AppCtx
 
 
 @ft.component
 def LocationPage():
-    """
-    Page for managing location sharing with OneSignal.
-    """
     ctx = ft.use_context(AppCtx)
     state = ctx.state
     onesignal = ctx.onesignal
-
-    # Local state
-    is_shared, set_is_shared = ft.use_state("")
 
     async def handle_request_permission(e):
         try:
@@ -27,92 +18,50 @@ def LocationPage():
         except Exception as ex:
             state.add_log(f"Error: {ex}", "error")
 
-    async def handle_enable_sharing(e):
+    async def handle_enable(e):
         try:
             await onesignal.location.set_shared(True)
-            set_is_shared("Yes")
-            state.add_log("Location sharing enabled", "success")
+            state.add_log("Sharing enabled", "success")
         except Exception as ex:
             state.add_log(f"Error: {ex}", "error")
 
-    async def handle_disable_sharing(e):
+    async def handle_disable(e):
         try:
             await onesignal.location.set_shared(False)
-            set_is_shared("No")
-            state.add_log("Location sharing disabled", "success")
+            state.add_log("Sharing disabled", "success")
         except Exception as ex:
             state.add_log(f"Error: {ex}", "error")
 
-    async def handle_check_shared(e):
+    async def handle_is_shared(e):
         try:
             result = await onesignal.location.is_shared()
-            set_is_shared("Yes" if result else "No")
-            state.add_log(f"Location shared: {result}", "success")
+            state.add_log(f"Sharing: {result}", "success")
         except Exception as ex:
             state.add_log(f"Error: {ex}", "error")
 
-    return PageLayout(
-        title="Location",
-        description=(
-            "Control location sharing with OneSignal. "
-            "When enabled, OneSignal can use the device location "
-            "for geographic notification targeting. System permission "
-            "is required before enabling sharing."
-        ),
-        code_example="""# Request location permission
-granted = await onesignal.location.request_permission()
-
-# Enable sharing
-await onesignal.location.set_shared(True)
-
-# Disable sharing
-await onesignal.location.set_shared(False)
-
-# Check status
-is_shared = await onesignal.location.is_shared()""",
-        children=[
-            ft.Container(
-                content=ft.Column(
-                    [
-                        ft.Icon(ft.Icons.LOCATION_ON, size=48, color=ft.Colors.PRIMARY),
-                        ft.Text(
-                            "Location enables sending notifications based on the user's geographic position.",
-                            text_align=ft.TextAlign.CENTER,
-                        ),
-                    ]
-                ),
-                alignment=ft.alignment.center,
-                padding=20,
+    return ft.Column(
+        [
+            ft.Text("Location", size=24, weight=ft.FontWeight.BOLD),
+            ft.Text("Control location sharing.", size=14, color=ft.Colors.GREY_700),
+            ft.TextButton(
+                "Documentation: Location Permissions",
+                icon=ft.Icons.OPEN_IN_NEW,
+                url="https://documentation.onesignal.com/docs/location-opt-in-prompt",
             ),
+            ft.Divider(height=20),
             ft.FilledButton(
                 "Request Permission",
                 icon=ft.Icons.LOCATION_SEARCHING,
                 on_click=handle_request_permission,
             ),
-            ft.Divider(height=20),
-            ft.Text("Sharing", weight=ft.FontWeight.W_500, size=16),
-            ft.TextField(
-                label="Status",
-                value=is_shared,
-                read_only=True,
-                width=100,
-            ),
+            ft.Divider(height=10),
             ft.Row(
                 [
-                    ft.FilledButton(
-                        "Enable",
-                        icon=ft.Icons.LOCATION_ON,
-                        on_click=handle_enable_sharing,
-                    ),
+                    ft.FilledButton("Enable", icon=ft.Icons.LOCATION_ON, on_click=handle_enable),
                     ft.OutlinedButton(
-                        "Disable",
-                        icon=ft.Icons.LOCATION_OFF,
-                        on_click=handle_disable_sharing,
+                        "Disable", icon=ft.Icons.LOCATION_OFF, on_click=handle_disable
                     ),
-                    ft.OutlinedButton(
-                        "Check Status",
-                        on_click=handle_check_shared,
-                    ),
+                    ft.OutlinedButton("Check Status", on_click=handle_is_shared),
                 ],
                 spacing=10,
                 wrap=True,
@@ -120,4 +69,7 @@ is_shared = await onesignal.location.is_shared()""",
             ft.Divider(height=20),
             LogViewer(),
         ],
+        spacing=12,
+        scroll=ft.ScrollMode.AUTO,
+        expand=True,
     )

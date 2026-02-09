@@ -1,26 +1,18 @@
-"""
-Application contexts for sharing state and services.
-"""
+"""Application context for sharing state and services via ft.create_context."""
 
 from dataclasses import dataclass
-from typing import Optional
 
 import flet as ft
 from state import AppState
 
-# Forward reference for OneSignal
 import flet_onesignal as fos
 
 
 @dataclass
 class AppContext:
-    """
-    Application context containing shared state and services.
-    """
-
     state: AppState
-    onesignal: Optional[fos.OneSignal] = None
+    onesignal: fos.OneSignal
+    clipboard: ft.Clipboard
 
 
-# Create the context
 AppCtx = ft.create_context(None)

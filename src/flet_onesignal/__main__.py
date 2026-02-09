@@ -4,10 +4,16 @@ Entry point for running flet-onesignal as a module.
 Usage:
     python -m flet_onesignal build apk
     python -m flet_onesignal build aab
+    python -m flet_onesignal build ipa
+    python -m flet_onesignal build web
+    python -m flet_onesignal build macos
+    python -m flet_onesignal build linux
+    python -m flet_onesignal build windows
 
     # Or use the fos-build command directly:
     fos-build apk
-    fos-build aab
+    fos-build web
+    fos-build ipa --ios-team-id ABCDE12345
 """
 
 import sys

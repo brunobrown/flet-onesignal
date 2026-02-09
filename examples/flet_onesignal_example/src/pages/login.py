@@ -1,32 +1,22 @@
-"""
-Login/Logout page - Associate/disassociate user with OneSignal.
-"""
+"""Login/Logout page."""
 
 import flet as ft
 from components.log_viewer import LogViewer
-from components.page_layout import PageLayout
 from context import AppCtx
 
 
 @ft.component
 def LoginPage():
-    """
-    Page for login/logout functionality.
-
-    Allows associating a user with an external ID for cross-device tracking.
-    """
     ctx = ft.use_context(AppCtx)
     state = ctx.state
     onesignal = ctx.onesignal
 
-    # Local state
     external_id, set_external_id = ft.use_state("")
 
     async def handle_login(e):
         if not external_id:
             state.add_log("Please enter an External ID", "warning")
             return
-
         try:
             await onesignal.login(external_id)
             state.add_log(f"Login successful: {external_id}", "success")
@@ -41,43 +31,37 @@ def LoginPage():
         except Exception as ex:
             state.add_log(f"Logout error: {ex}", "error")
 
-    return PageLayout(
-        title="Login / Logout",
-        description=(
-            "Associates the device with a user identified by External ID. "
-            "This allows tracking the user across devices and keeping their "
-            "preferences synchronized. Logout disassociates the current user "
-            "and creates a new anonymous user."
-        ),
-        code_example="""# Login - associate user
-await onesignal.login("user-123")
-
-# Logout - disassociate user
-await onesignal.logout()""",
-        children=[
+    return ft.Column(
+        [
+            ft.Text("Login / Logout", size=24, weight=ft.FontWeight.BOLD),
+            ft.Text(
+                "Associate the device with a user identified by External ID.",
+                size=14,
+                color=ft.Colors.GREY_700,
+            ),
+            ft.TextButton(
+                "Documentation: Users",
+                icon=ft.Icons.OPEN_IN_NEW,
+                url="https://documentation.onesignal.com/docs/users",
+            ),
+            ft.Divider(height=20),
             ft.TextField(
                 label="External ID",
-                hint_text="E.g.: user-123, email@example.com",
+                hint_text="Ex: user-123",
                 value=external_id,
                 on_change=lambda e: set_external_id(e.control.value),
-                expand=True,
             ),
             ft.Row(
                 [
-                    ft.FilledButton(
-                        "Login",
-                        icon=ft.Icons.LOGIN,
-                        on_click=handle_login,
-                    ),
-                    ft.OutlinedButton(
-                        "Logout",
-                        icon=ft.Icons.LOGOUT,
-                        on_click=handle_logout,
-                    ),
+                    ft.FilledButton("Login", icon=ft.Icons.LOGIN, on_click=handle_login),
+                    ft.OutlinedButton("Logout", icon=ft.Icons.LOGOUT, on_click=handle_logout),
                 ],
                 spacing=10,
             ),
             ft.Divider(height=20),
             LogViewer(),
         ],
+        spacing=12,
+        scroll=ft.ScrollMode.AUTO,
+        expand=True,
     )

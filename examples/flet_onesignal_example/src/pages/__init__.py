@@ -1,6 +1,4 @@
-"""
-Page components for the OneSignal example app.
-"""
+"""Page components for the OneSignal example app."""
 
 from pages.consent import ConsentPage
 from pages.debug import DebugPage
@@ -18,26 +16,7 @@ from pages.user_language import UserLanguagePage
 from pages.user_push import UserPushPage
 from pages.user_tags import UserTagsPage
 
-__all__ = [
-    "LoginPage",
-    "ConsentPage",
-    "UserIdentityPage",
-    "UserTagsPage",
-    "UserAliasesPage",
-    "UserEmailSmsPage",
-    "UserLanguagePage",
-    "UserPushPage",
-    "NotificationsPage",
-    "InAppMessagesPage",
-    "LocationPage",
-    "SessionPage",
-    "LiveActivitiesPage",
-    "DebugPage",
-    "EventLogsPage",
-]
-
-# Page routing map
-PAGE_MAP = {
+PAGE_BUILDERS = {
     "login": LoginPage,
     "consent": ConsentPage,
     "user_identity": UserIdentityPage,

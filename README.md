@@ -7,12 +7,24 @@
 </p>
 
 <p align="center">
-  <a href="#installation">Installation</a> •
-  <a href="#quick-start">Quick Start</a> •
-  <a href="#api-reference">API Reference</a>
+<a href="https://github.com/brunobrown/flet-asp/blob/main/LICENSE" target="_blank">
+    <img src="https://img.shields.io/badge/license-MIT-green?style=flat" alt="License">
+</a>
+<a href="https://pypi.org/project/flet-onesignal" target="_blank">
+    <img src="https://img.shields.io/pypi/v/flet-onesignal?color=%2334D058&label=pypi%20package" alt="Package version">
+</a>
+<a href="https://pypi.org/project/flet-onesignal" target="_blank">
+    <img src="https://img.shields.io/pypi/pyversions/flet-onesignal.svg?color=%2334D058" alt="Supported Python versions">
+</a>
+<a href="https://pepy.tech/projects/flet-onesignal"><img src="https://static.pepy.tech/personalized-badge/flet-onesignal?period=monthly&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads%2Fmonth" alt="PyPI Downloads">
+</a>
 </p>
 
 ---
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [API Reference](#api-reference)
 
 ## Overview
 
@@ -45,8 +57,8 @@ If you find this project useful, please consider supporting its development:
 
 | Component | Minimum Version |
 |-----------|-----------------|
-| Python | 3.10+ |
-| Flet | 0.80.5+ |
+| Python | 3.10+           |
+| Flet | 0.80.x+         |
 
 
 ### Platform Requirements

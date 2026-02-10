@@ -11,7 +11,7 @@ license = "MIT"
 license-files = ["LICENSE"]
 
 dependencies = [
-    "flet>=0.80.5",
+    "flet>=0.80.0",
     "rich>=13.0.0",
 ]
 
@@ -25,7 +25,7 @@ fos-build = "flet_onesignal.build:main"
 
 [dependency-groups]
 dev = [
-    "flet[all]>=0.80.5",
+    "flet[all]>=0.80.0",
 ]
 
 [tool.ruff]
@@ -105,7 +105,6 @@ classifiers = [
     "Natural Language :: Portuguese (Brazilian)",
     "Operating System :: OS Independent",
     "Development Status :: 5 - Production/Stable",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",

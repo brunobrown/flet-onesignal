@@ -1,130 +1,134 @@
+"""
+Flet OneSignal Example Application
+
+Demonstrates all features of flet-onesignal using Flet 0.80.x declarative mode
+with @ft.component, @ft.observable, and ft.create_context.
+"""
+
+import logging
+
 import flet as ft
+from components.drawer import AppDrawer
+from config import ONESIGNAL_APP_ID
+from context import AppContext, AppCtx
+from pages import PAGE_BUILDERS
+from state import AppState
+
 import flet_onesignal as fos
-from functools import partial
 
-ONESIGNAL_APP_ID = "example-123a-12a3-1a23-abcd1ef23g45"
+logger = fos.setup_logging(level=logging.DEBUG)
 
 
-async def main(page: ft.Page):
-    page.appbar = ft.AppBar(title=ft.Text("OneSignal Test"), bgcolor=ft.Colors.BLUE_700, color=ft.Colors.WHITE)
-    get_onesignal_id = ft.TextField(label='Get OneSignal ID', read_only=True)
-    get_external_id = ft.TextField(label='Get External User ID', read_only=True, ignore_pointers=True)
-    set_external_id = ft.TextField(label='Set External User ID', hint_text='User ID')
-    language = ft.TextField(label='Language', hint_text='Language Code (en)', value='en', color=ft.Colors.GREEN)
+@ft.component
+def PageContent():
+    ctx = ft.use_context(AppCtx)
+    state = ctx.state
+    builder = PAGE_BUILDERS.get(state.current_page, PAGE_BUILDERS["login"])
+    return ft.Container(content=builder(), expand=True, padding=20)
 
-    def handle_notification_opened(e):
-        #Access the data of the clicked notification
-        list_view.content.controls.append(ft.Text(f"Notification opened: {e.notification_opened}"))
-        list_view.update()
 
-    def handle_notification_received(e):
-        # Access the data of the received notification
-        list_view.content.controls.append(ft.Text(f"Notification received: {e.notification_received}"))
-        list_view.update()
+@ft.component
+def App(state, onesignal, clipboard):
+    ctx = AppContext(
+        state=state,
+        onesignal=onesignal,
+        clipboard=clipboard,
+    )
 
-    def handle_click_in_app_messages(e):
-        # Access the data of the received notification in app messages
-        list_view.content.controls.append(ft.Text(f"Notification click_in_app_messages: {e.click_in_app_messages}"))
-        list_view.update()
+    # Mutable ref to capture the View instance for the drawer handler.
+    view_ref = [None]
 
-    def get_id(e):
-        result = onesignal.get_onesignal_id()
-        get_onesignal_id.value = result
-        get_onesignal_id.update()
+    def on_event_logs_click(e):
+        state.navigate("event_logs")
 
-    def get_external_user_id(e):
-        result = onesignal.get_external_user_id()
-        get_external_id.value = result
-        get_external_id.update()
+    async def on_menu_click(e):
+        # Call show_drawer() on the View directly because page.render_views()
+        # replaces page.views with a Component, breaking page.show_drawer().
+        if view_ref[0]:
+            await view_ref[0].show_drawer()
 
-    def handle_login(e, external_user_id):
-        message = "Login failed"
+    def build_view():
+        view_ref[0] = ft.View(
+            controls=[PageContent()],
+            appbar=ft.AppBar(
+                leading=ft.IconButton(
+                    icon=ft.Icons.MENU,
+                    on_click=on_menu_click,
+                ),
+                title=ft.Text("Flet OneSignal"),
+                bgcolor=ft.Colors.BLUE_700,
+                color=ft.Colors.WHITE,
+                actions=[
+                    ft.IconButton(
+                        icon=ft.Icons.BUG_REPORT,
+                        on_click=on_event_logs_click,
+                        tooltip="Event Logs",
+                    ),
+                ],
+            ),
+            drawer=ft.NavigationDrawer(
+                controls=[AppDrawer()],
+                on_dismiss=lambda e: None,
+            ),
+            padding=0,
+            bgcolor=ft.Colors.WHITE,
+            spacing=0,
+        )
+        return view_ref[0]
 
-        if not external_user_id.value:
-            message = "Please enter external user ID"
+    return AppCtx(ctx, build_view)
 
-        if external_user_id.value:
-            result = onesignal.login(external_user_id.value)
-            if result:
-                message = "Login successful"
 
-        list_view.content.controls.append(ft.Text(message))
-        list_view.update()
+def main(page: ft.Page):
+    page.title = "Flet OneSignal"
+    page.theme_mode = ft.ThemeMode.LIGHT
 
-    def handle_logout(e):
-        onesignal.logout()
-        set_external_id.value = None
-        set_external_id.update()
-
-    def set_language(e, language_code):
-        result = onesignal.set_language(language_code.value)
-        list_view.content.controls.append(ft.Text(result))
-        list_view.update()
-        print(result)
-
-    def handle_error(e):
-        #handle_error
-        list_view.content.controls.append(ft.Text(f"Error: {e.data}"))
-        list_view.update()
+    # Create state outside component so event handlers can access it
+    app_state = AppState()
 
     onesignal = fos.OneSignal(
-        settings=fos.OneSignalSettings(app_id=ONESIGNAL_APP_ID),
-        on_notification_opened=handle_notification_opened,
-        on_notification_received=handle_notification_received,
-        on_click_in_app_messages=handle_click_in_app_messages,
-        on_error=handle_error,
+        app_id=ONESIGNAL_APP_ID,
+        log_level=fos.OSLogLevel.DEBUG,
+        on_notification_click=lambda e: app_state.add_log(
+            f"[Notification Click] {e.notification}", "info"
+        ),
+        on_notification_foreground=lambda e: app_state.add_log(
+            f"[Notification Foreground] ID: {e.notification_id}", "info"
+        ),
+        on_permission_change=lambda e: app_state.add_log(
+            f"[Permission Change] Granted: {e.permission}",
+            "success" if e.permission else "warning",
+        ),
+        on_user_change=lambda e: app_state.add_log(
+            f"[User Change] OneSignal ID: {e.onesignal_id}, External ID: {e.external_id}",
+            "info",
+        ),
+        on_push_subscription_change=lambda e: app_state.add_log(
+            f"[Push Subscription] ID: {e.id}, Opted In: {e.opted_in}", "info"
+        ),
+        on_iam_click=lambda e: app_state.add_log(
+            f"[IAM Click] Action: {e.action_id}, URL: {e.url}", "info"
+        ),
+        on_iam_will_display=lambda e: app_state.add_log(
+            f"[IAM Will Display] Message: {e.message}", "debug"
+        ),
+        on_iam_did_display=lambda e: app_state.add_log("[IAM Did Display]", "debug"),
+        on_iam_will_dismiss=lambda e: app_state.add_log("[IAM Will Dismiss]", "debug"),
+        on_iam_did_dismiss=lambda e: app_state.add_log("[IAM Did Dismiss]", "debug"),
+        on_error=lambda e: app_state.add_log(f"[Error] {e.method}: {e.message}", "error"),
     )
+    page.services.append(onesignal)
 
-    container = ft.Container(
-        alignment=ft.alignment.bottom_center,
-        content=ft.Row(
-            scroll=ft.ScrollMode.ADAPTIVE,
-            expand=True,
-            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-            controls=[
-                ft.ElevatedButton(
-                    text='Get OneSignal Id',
-                    on_click=get_id
-                ),
-                ft.ElevatedButton(
-                    'Get External User Id',
-                    on_click=get_external_user_id
-                ),
-                ft.ElevatedButton(
-                    text='Set External User Id',
-                    on_click=partial(handle_login, external_user_id=set_external_id)
-                ),
-                ft.ElevatedButton(
-                    text='Logout External User Id',
-                    on_click=handle_logout
-                ),
-                ft.ElevatedButton(
-                    text='Set Language',
-                    on_click=partial(set_language, language_code=language)
-                ),
-            ]
-        )
-    )
+    clipboard = ft.Clipboard()
+    page.services.append(clipboard)
 
-    list_view = ft.Container(
-        expand=True,
-        content=ft.ListView(
-            padding=ft.padding.all(10),
-            spacing=5,
-        )
-    )
-    page.overlay.append(onesignal)
+    logger.info(f"Platform: {page.platform}")
+    logger.info(f"OneSignal App ID: {ONESIGNAL_APP_ID}")
 
-    page.add(
-        # onesignal,
-        list_view,
-        get_onesignal_id,
-        get_external_id,
-        set_external_id,
-        language,
-        container,
-    )
+    app_state.add_log("OneSignal initialized. Ready to test!", "success")
+
+    page.render_views(App, app_state, onesignal, clipboard)
 
 
 if __name__ == "__main__":
-    ft.app(target=main)
+    ft.run(main)

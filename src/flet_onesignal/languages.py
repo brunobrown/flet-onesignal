@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class Language(Enum):
     """
     Enumeração de línguas suportadas pelo OneSignal.

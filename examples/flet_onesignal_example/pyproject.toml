@@ -17,10 +17,5 @@ dev-dependencies = [
     "flet[all]>=0.80.5",
 ]
 
-[tool.uv.sources]
-flet-onesignal = { path = "../../", editable = true }
-
-[dependency-groups]
-dev = [
-    "flet-onesignal",
-]
+[tool.flet.app]
+path = "src"

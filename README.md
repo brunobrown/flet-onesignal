@@ -9,9 +9,6 @@
 <p align="center">
   <a href="#installation">Installation</a> •
   <a href="#quick-start">Quick Start</a> •
-  <a href="#user-management">User Management</a> •
-  <a href="#push-notifications">Push Notifications</a> •
-  <a href="#in-app-messages">In-App Messages</a> •
   <a href="#api-reference">API Reference</a>
 </p>
 
@@ -21,12 +18,14 @@
 
 **Flet OneSignal** is an extension that integrates the [OneSignal Flutter SDK](https://documentation.onesignal.com/docs/flutter-sdk-setup) with [Flet](https://flet.dev) applications. It provides a complete Python API for:
 
-- **Push Notifications** - Send and receive push notifications on iOS and Android
-- **In-App Messages** - Display targeted messages within your app
-- **User Management** - Manage user identity, tags, aliases, and subscriptions
-- **Email & SMS** - Add email and SMS subscriptions for omnichannel messaging
-- **Outcomes** - Track user actions and conversions
-- **Live Activities** - Update iOS Live Activities in real-time (iOS 16.1+)
+- [Push Notifications](#push-notifications) — send and receive on iOS and Android ([OneSignal Docs](https://documentation.onesignal.com/docs/en/push-notification-guide))
+- [In-App Messages](#in-app-messages) — targeted messages within your app ([OneSignal Docs](https://documentation.onesignal.com/docs/en/in-app-messages-quickstart))
+- [User Management](#user-management) — identity, tags, aliases, email, SMS ([OneSignal Docs](https://documentation.onesignal.com/docs/en/users))
+- [Location](#location) — geo-targeted messaging ([OneSignal Docs](https://documentation.onesignal.com/docs/en/location-data))
+- [Outcomes](#outcomes) — track actions and conversions ([OneSignal Docs](https://documentation.onesignal.com/docs/en/outcomes))
+- [Live Activities](#live-activities-ios) — iOS real-time updates (iOS 16.1+) ([OneSignal Docs](https://documentation.onesignal.com/docs/en/live-activities))
+- [Privacy & Consent](#privacy--consent) — GDPR compliance
+- [Debugging](#debugging) — log levels and error handling
 
 > **Version 0.4.0** - Built for Flet 0.80.x with a modular architecture that mirrors the OneSignal SDK structure.
 
@@ -48,8 +47,7 @@ If you find this project useful, please consider supporting its development:
 |-----------|-----------------|
 | Python | 3.10+ |
 | Flet | 0.80.5+ |
-| Flutter | 3.29.0+ |
-| OneSignal Flutter SDK | 5.4.0 |
+
 
 ### Platform Requirements
 
@@ -91,33 +89,33 @@ dependencies = [
     "flet>=0.80.5",
     "flet-onesignal>=0.4.0",
 ]
+
+[tool.flet.app]
+path = "src"
+
 ```
 
-### Step 3: OneSignal Dashboard Setup
+### Step 3: OneSignal Dashboard Setup (Android)
 
-1. Create an account at [OneSignal.com](https://onesignal.com)
-2. Create a new app in the OneSignal dashboard
-3. Configure your iOS and/or Android platforms
-4. Copy your **App ID** from Settings > Keys & IDs
+1. Create an account at [OneSignal.com](https://onesignal.com), then click **+ Create** > **New App**.
 
-### Step 4: Platform Configuration
+2. Enter your **App Name**, select the organization, choose **Google Android (FCM)** as the channel, and click **Next: Configure Your Platform**.
 
-#### Android Configuration
+   ![New OneSignal App](docs/images/onesignal-new-app.png)
 
-Add the following to your `android/app/build.gradle`:
+3. Upload your **Service Account JSON** file. To generate it, go to the [Firebase Console](https://console.firebase.google.com) > **Project Settings** > **Service accounts** > **Generate new private key**. See the [OneSignal Android credentials guide](https://documentation.onesignal.com/docs/en/android-firebase-credentials) for detailed instructions. Click **Save & Continue**.
 
-```gradle
-android {
-    compileSdkVersion 34
+   ![FCM Configuration](docs/images/onesignal-fcm-config.png)
 
-    defaultConfig {
-        minSdkVersion 24
-        // ...
-    }
-}
-```
+4. Select **Flutter** as the target SDK, then click **Save & Continue**.
 
-#### iOS Configuration
+   ![Select SDK](docs/images/onesignal-select-sdk.png)
+
+5. Copy the **App ID** displayed on the screen and click **Done**. You will use this ID in your Flet app.
+
+   ![App ID](docs/images/onesignal-app-id.png)
+
+### Step 4: iOS Configuration
 
 1. Enable **Push Notifications** capability in Xcode
 2. Enable **Background Modes** > Remote notifications
@@ -288,6 +286,10 @@ Set the user's preferred language for localized notifications:
 await onesignal.user.set_language("pt")  # Portuguese
 await onesignal.user.set_language("es")  # Spanish
 await onesignal.user.set_language("en")  # English
+
+# You can also use the Language enum for auto-complete support
+await onesignal.user.set_language(fos.Language.PORTUGUESE.value)
+await onesignal.user.set_language(fos.Language.SPANISH.value)
 ```
 
 ---
@@ -342,6 +344,19 @@ await onesignal.notifications.remove_notification(notification_id)
 await onesignal.notifications.remove_grouped_notifications("group_key")
 ```
 
+### Foreground Display Control
+
+Control whether notifications are shown when the app is in the foreground:
+
+```python
+# Inside on_notification_foreground handler:
+# Prevent a notification from being displayed
+await onesignal.notifications.prevent_default(e.notification_id)
+
+# Later, allow display if needed
+await onesignal.notifications.display(e.notification_id)
+```
+
 ### Push Subscription Control
 
 ```python
@@ -373,8 +388,10 @@ def on_notification_foreground(e: fos.OSNotificationWillDisplayEvent):
     print(f"Notification received: {e.notification}")
     print(f"Notification ID: {e.notification_id}")
 
-    # Optionally prevent display and handle manually
+    # Optionally prevent display and handle manually:
     # await onesignal.notifications.prevent_default(e.notification_id)
+    # Later, allow display if needed:
+    # await onesignal.notifications.display(e.notification_id)
 
 
 def on_permission_change(e: fos.OSPermissionChangeEvent):
@@ -539,6 +556,9 @@ await onesignal.live_activities.set_push_to_start_token(
 
 # Remove push-to-start token
 await onesignal.live_activities.remove_push_to_start_token("DeliveryActivityAttributes")
+
+# Setup default Live Activity options
+await onesignal.live_activities.setup_default()
 ```
 
 ---
@@ -611,6 +631,60 @@ onesignal = fos.OneSignal(
 )
 ```
 
+### Debug Console
+
+A built-in visual console for viewing application logs during development:
+
+```python
+import flet as ft
+import flet_onesignal as fos
+
+# Setup file-based logging (writes to FLET_APP_CONSOLE or debug.log)
+logger = fos.setup_logging()
+
+async def main(page: ft.Page):
+    debug_console = fos.DebugConsole()
+
+    page.appbar = ft.AppBar(
+        title=ft.Text("My App"),
+        actions=[debug_console.icon],  # Bug icon opens the console
+    )
+
+    # Or use a floating action button instead
+    # page.floating_action_button = debug_console.fab
+
+    logger.info("App started")
+    page.add(ft.Text("Hello World"))
+
+ft.run(main)
+```
+
+The `DebugConsole` reads log entries written by `setup_logging()` and displays them in a filterable dialog with color-coded levels (`fos.LogLevel.DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`).
+
+### Android Logcat Scripts
+
+The [`scripts/`](scripts/) directory includes two logcat viewer scripts that display Android logs with **Android Studio-style colors and formatting**. They auto-detect the focused app, filter by its PID, and highlight Flet/Flutter, Python errors and exceptions.
+
+**Bash version** (Linux/macOS — requires `adb` in PATH):
+
+```bash
+# Default filter (flutter, python, Error, Exception, Traceback)
+./scripts/flet_log.sh
+
+# Add extra filters
+./scripts/flet_log.sh "OneSignal|Firebase"
+```
+
+**Python version** (cross-platform):
+
+```bash
+python scripts/flet_log.py
+
+python scripts/flet_log.py "OneSignal|Firebase"
+```
+
+> **Requirement:** A device or emulator connected via `adb`. The scripts clear the logcat buffer on each app restart so you only see fresh output.
+
 ---
 
 ## API Reference
@@ -621,6 +695,7 @@ onesignal = fos.OneSignal(
 fos.OneSignal(
     app_id: str,                          # Required: Your OneSignal App ID
     log_level: OSLogLevel = None,         # Optional: SDK log level
+    visual_alert_level: OSLogLevel = None, # Optional: Visual alert level (iOS)
     require_consent: bool = False,        # Optional: Require user consent
     on_notification_click: Callable = None,
     on_notification_foreground: Callable = None,
@@ -645,7 +720,7 @@ fos.OneSignal(
 | `OSPermissionChangeEvent` | `permission` |
 | `OSUserChangedEvent` | `state.onesignal_id`, `state.external_id` |
 | `OSPushSubscriptionChangedEvent` | `id`, `token`, `opted_in` |
-| `OSInAppMessageClickEvent` | `message`, `result.action_id`, `result.url` |
+| `OSInAppMessageClickEvent` | `message`, `result.action_id`, `result.url`, `result.url_target`, `result.closing_message` |
 | `OSInAppMessageWillDisplayEvent` | `message` |
 | `OSInAppMessageDidDisplayEvent` | `message` |
 | `OSInAppMessageWillDismissEvent` | `message` |
@@ -707,7 +782,7 @@ If upgrading from version 0.3.x, note these breaking changes:
 ### App crashes on startup
 
 1. Verify minimum SDK versions are met
-2. Check that the OneSignal is added to `page.overlay`
+2. Check that the OneSignal is added to `page.services`
 3. Review the `on_error` handler for any initialization errors
 
 ### Tags not syncing
@@ -715,6 +790,20 @@ If upgrading from version 0.3.x, note these breaking changes:
 1. Tags are synced asynchronously - allow a few seconds
 2. Check your network connection
 3. Verify tags in the OneSignal dashboard under Users
+
+---
+
+## Example App
+
+A complete example demonstrating all features is available in the [`examples/flet_onesignal_example`](examples/flet_onesignal_example) directory.
+
+It includes pages for each module — login, notifications, tags, aliases, in-app messages, location, session outcomes and more — built with Flet's declarative UI.
+
+To run:
+
+    cd examples/flet_onesignal_example
+    uv sync
+    uv run python src/main.py
 
 ---
 

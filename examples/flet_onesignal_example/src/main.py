@@ -115,9 +115,7 @@ def main(page: ft.Page):
         on_iam_did_display=lambda e: app_state.add_log("[IAM Did Display]", "debug"),
         on_iam_will_dismiss=lambda e: app_state.add_log("[IAM Will Dismiss]", "debug"),
         on_iam_did_dismiss=lambda e: app_state.add_log("[IAM Did Dismiss]", "debug"),
-        on_error=lambda e: app_state.add_log(
-            f"[Error] {e.method}: {e.message}", "error"
-        ),
+        on_error=lambda e: app_state.add_log(f"[Error] {e.method}: {e.message}", "error"),
     )
     page.services.append(onesignal)
 

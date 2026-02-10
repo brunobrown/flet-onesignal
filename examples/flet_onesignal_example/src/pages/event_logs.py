@@ -48,9 +48,7 @@ def EventLogsPage():
                     ft.Text("Event Logs", size=24, weight=ft.FontWeight.BOLD),
                     ft.Row(
                         [
-                            ft.IconButton(
-                                icon=ft.Icons.COPY, tooltip="Copy", on_click=copy_logs
-                            ),
+                            ft.IconButton(icon=ft.Icons.COPY, tooltip="Copy", on_click=copy_logs),
                             ft.IconButton(
                                 icon=ft.Icons.DELETE_OUTLINE,
                                 tooltip="Clear",

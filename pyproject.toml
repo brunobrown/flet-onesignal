@@ -12,12 +12,16 @@ license-files = ["LICENSE"]
 
 dependencies = [
     "flet>=0.80.5",
+    "rich>=13.0.0",
 ]
 
 [project.optional-dependencies]
 build = [
     "watchdog>=3.0.0",
 ]
+
+[project.scripts]
+fos-build = "flet_onesignal.build:main"
 
 [dependency-groups]
 dev = [
@@ -54,6 +58,9 @@ asyncio_mode = "auto"
 addopts = "-v --tb=short"
 
 [tool.ty.rules]
+# tomllib é stdlib desde Python 3.11; ty não resolve corretamente
+unresolved-import = "ignore"
+
 # Erros causados por **kwargs com dicionários dinâmicos
 # O ty ainda não consegue inferir corretamente esses padrões
 invalid-argument-type = "ignore"
@@ -104,9 +111,6 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
-
-[project.scripts]
-fos-build = "flet_onesignal.build:main"
 
 [project.urls]
 Homepage = "https://github.com/brunobrown/flet-onesignal"

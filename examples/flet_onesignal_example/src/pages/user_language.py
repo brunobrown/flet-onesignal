@@ -45,9 +45,7 @@ def UserLanguagePage():
                 ],
                 width=200,
             ),
-            ft.FilledButton(
-                "Set Language", icon=ft.Icons.LANGUAGE, on_click=handle_set_language
-            ),
+            ft.FilledButton("Set Language", icon=ft.Icons.LANGUAGE, on_click=handle_set_language),
             ft.Divider(height=20),
             LogViewer(),
         ],

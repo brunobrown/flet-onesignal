@@ -10,6 +10,7 @@ authors = [
 
 dependencies = [
     "flet>=0.80.5",
+    "flet-onesignal>=0.4.0"
 ]
 
 [tool.uv]

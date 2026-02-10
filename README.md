@@ -101,19 +101,23 @@ path = "src"
 
 2. Enter your **App Name**, select the organization, choose **Google Android (FCM)** as the channel, and click **Next: Configure Your Platform**.
 
-   ![New OneSignal App](docs/images/onesignal-new-app.png)
+   ![New OneSignal App](https://github.com/user-attachments/assets/b9211026-ae68-4b51-a185-06092300f77f)
+
 
 3. Upload your **Service Account JSON** file. To generate it, go to the [Firebase Console](https://console.firebase.google.com) > **Project Settings** > **Service accounts** > **Generate new private key**. See the [OneSignal Android credentials guide](https://documentation.onesignal.com/docs/en/android-firebase-credentials) for detailed instructions. Click **Save & Continue**.
 
-   ![FCM Configuration](docs/images/onesignal-fcm-config.png)
+
+   ![FCM Configuration](https://github.com/user-attachments/assets/eddd4655-2b99-4c57-b217-e50151014dca)
 
 4. Select **Flutter** as the target SDK, then click **Save & Continue**.
 
-   ![Select SDK](docs/images/onesignal-select-sdk.png)
+   ![Select SDK](https://github.com/user-attachments/assets/201ff0ab-83e0-401c-9ad8-0407ba280c49)
+
 
 5. Copy the **App ID** displayed on the screen and click **Done**. You will use this ID in your Flet app.
 
-   ![App ID](docs/images/onesignal-app-id.png)
+   ![App ID](https://github.com/user-attachments/assets/90edfacc-d9e7-402e-b76b-9781808167f6)
+
 
 ### Step 4: iOS Configuration
 

@@ -1,9 +1,25 @@
-"""Rich-based UI helpers for fos-build CLI output."""
+"""Rich-based UI helpers for fos-build CLI output.
 
-from rich.console import Console
-from rich.panel import Panel
+Requires the 'cli' extra: pip install flet-onesignal[cli]
+"""
 
-console = Console()
+try:
+    from rich.console import Console
+    from rich.panel import Panel
+
+    console = Console()
+except ImportError:
+    import sys
+
+    print(
+        "ERROR: 'rich' is required for fos-build.\n"
+        "Install it with:\n"
+        "  uv add flet-onesignal[cli]\n"
+        "  pip install flet-onesignal[cli]\n"
+        "  poetry add flet-onesignal[cli]",
+        file=sys.stderr,
+    )
+    sys.exit(1)
 
 
 def header():

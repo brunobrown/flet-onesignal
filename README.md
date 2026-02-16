@@ -36,7 +36,7 @@
 - [Location](#location) — geo-targeted messaging ([OneSignal Docs](https://documentation.onesignal.com/docs/en/location-data))
 - [Outcomes](#outcomes) — track actions and conversions ([OneSignal Docs](https://documentation.onesignal.com/docs/en/outcomes))
 - [Live Activities](#live-activities-ios) — iOS real-time updates (iOS 16.1+) ([OneSignal Docs](https://documentation.onesignal.com/docs/en/live-activities))
-- [Privacy & Consent](#privacy--consent) — GDPR compliance
+- [Privacy & Consent](#privacy--consent) — GDPR compliance ([OneSignal Docs](https://documentation.onesignal.com/docs/en/handling-personal-data))
 - [Debugging](#debugging) — log levels and error handling
 
 > **Version 0.4.0** - Built for Flet 0.80.x with a modular architecture that mirrors the OneSignal SDK structure.
@@ -596,6 +596,9 @@ await onesignal.consent_given(True)
 # If user declines
 await onesignal.consent_given(False)
 ```
+
+> **Important:** `require_consent=True` must be set in the constructor for the consent methods to work.
+> Without it, the SDK is fully active from initialization and calling `consent_given()` has no practical effect.
 
 ---
 

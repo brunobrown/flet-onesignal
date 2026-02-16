@@ -20,3 +20,7 @@ dev-dependencies = [
 
 [tool.flet.app]
 path = "src"
+
+[tool.flet.android]
+permission."android.permission.ACCESS_FINE_LOCATION" = true
+permission."android.permission.ACCESS_COARSE_LOCATION" = true

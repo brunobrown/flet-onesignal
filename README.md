@@ -548,7 +548,18 @@ pip install flet-onesignal[cli]
 poetry add flet-onesignal[cli]
 ```
 
-**2. Enable location** via `pyproject.toml` or CLI flag:
+**2. Add location permissions** to your `pyproject.toml`:
+
+```toml
+# pyproject.toml
+[tool.flet.android]
+permission."android.permission.ACCESS_FINE_LOCATION" = true
+permission."android.permission.ACCESS_COARSE_LOCATION" = true
+```
+
+These permissions are required in the Android Manifest for the app to access the device's GPS. `ACCESS_FINE_LOCATION` enables precise GPS positioning, while `ACCESS_COARSE_LOCATION` enables approximate location via Wi-Fi/cell towers. Without them, the system will deny location access at runtime even if the user grants permission in the dialog.
+
+**3. Enable the OneSignal Location module** via `pyproject.toml` or CLI flag:
 
 ```toml
 # pyproject.toml
@@ -561,7 +572,7 @@ location = true
 fos-build apk --location
 ```
 
-**3. Build with `fos-build`:**
+**4. Build with `fos-build`:**
 
 ```bash
 fos-build apk

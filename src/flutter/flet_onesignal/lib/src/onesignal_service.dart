@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flet/flet.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 /// OneSignal service implementation for Flet.
 ///
@@ -278,8 +279,9 @@ class OneSignalService extends FletService {
 
         // Location methods
         "location_request_permission" => await _locationRequestPermission(),
-        "location_set_shared" => _locationSetShared(arguments),
-        "location_is_shared" => _locationIsShared(),
+        "location_get_permission" => await _locationGetPermission(),
+        "location_set_shared" => await _locationSetShared(arguments),
+        "location_is_shared" => await _locationIsShared(),
 
         // Session methods
         "session_add_outcome" => await _sessionAddOutcome(arguments),
@@ -640,19 +642,26 @@ class OneSignalService extends FletService {
   // Location methods
   // ---------------------------------------------------------------------------
 
-  Future<String?> _locationRequestPermission() async {
+  Future<String> _locationRequestPermission() async {
     await OneSignal.Location.requestPermission();
-    return null;
+    final status = await Permission.location.status;
+    return status.isGranted.toString();
   }
 
-  String? _locationSetShared(Map<String, dynamic> args) {
+  Future<String> _locationGetPermission() async {
+    final status = await Permission.location.status;
+    return status.isGranted.toString();
+  }
+
+  Future<String?> _locationSetShared(Map<String, dynamic> args) async {
     final shared = args["shared"] as bool? ?? false;
-    OneSignal.Location.setShared(shared);
+    await OneSignal.Location.setShared(shared);
     return null;
   }
 
-  String _locationIsShared() {
-    return OneSignal.Location.isShared.toString();
+  Future<String> _locationIsShared() async {
+    final shared = await OneSignal.Location.isShared();
+    return shared.toString();
   }
 
   // ---------------------------------------------------------------------------

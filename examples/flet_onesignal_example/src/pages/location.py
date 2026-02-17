@@ -14,7 +14,14 @@ def LocationPage():
     async def handle_request_permission(e):
         try:
             result = await onesignal.location.request_permission()
-            state.add_log(f"Location permission: {result}", "success")
+            state.add_log(f"Permission granted: {result}", "success")
+        except Exception as ex:
+            state.add_log(f"Error: {ex}", "error")
+
+    async def handle_check_permission(e):
+        try:
+            result = await onesignal.location.get_permission()
+            state.add_log(f"Permission granted: {result}", "success")
         except Exception as ex:
             state.add_log(f"Error: {ex}", "error")
 
@@ -49,10 +56,21 @@ def LocationPage():
                 url="https://documentation.onesignal.com/docs/location-opt-in-prompt",
             ),
             ft.Divider(height=20),
-            ft.FilledButton(
-                "Request Permission",
-                icon=ft.Icons.LOCATION_SEARCHING,
-                on_click=handle_request_permission,
+            ft.Row(
+                [
+                    ft.FilledButton(
+                        "Request Permission",
+                        icon=ft.Icons.LOCATION_SEARCHING,
+                        on_click=handle_request_permission,
+                    ),
+                    ft.OutlinedButton(
+                        "Check Permission",
+                        icon=ft.Icons.VERIFIED_USER,
+                        on_click=handle_check_permission,
+                    ),
+                ],
+                spacing=10,
+                wrap=True,
             ),
             ft.Divider(height=10),
             ft.Row(

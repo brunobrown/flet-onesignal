@@ -1,6 +1,6 @@
 [project]
 name = "flet-onesignal"
-version = "0.4.1"
+version = "0.4.2"
 description = "Flutter OneSignal package integration for Python Flet."
 requires-python = ">=3.10"
 readme = "README.md"

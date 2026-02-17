@@ -24,3 +24,6 @@ path = "src"
 [tool.flet.android]
 permission."android.permission.ACCESS_FINE_LOCATION" = true
 permission."android.permission.ACCESS_COARSE_LOCATION" = true
+
+[tool.flet.onesignal.android]
+location = true

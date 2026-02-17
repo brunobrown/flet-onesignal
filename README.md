@@ -529,7 +529,45 @@ await onesignal.location.set_shared(False)
 is_shared = await onesignal.location.is_shared()
 ```
 
-> **Note:** Location sharing requires appropriate permissions configured in your app.
+### Android Setup
+
+On Android, the OneSignal Location module is **not included by default**. Without it, `set_shared(True)` will log `no location dependency found` and location will not work.
+
+To enable it, you need to build your app using the `fos-build` CLI, which automatically injects the required Gradle dependencies (`com.onesignal:location`, `play-services-location`, and ProGuard rules).
+
+**1. Install the CLI:**
+
+```bash
+# Using UV (Recommended)
+uv add flet-onesignal[cli]
+
+# Using pip
+pip install flet-onesignal[cli]
+
+# Using Poetry
+poetry add flet-onesignal[cli]
+```
+
+**2. Enable location** via `pyproject.toml` or CLI flag:
+
+```toml
+# pyproject.toml
+[tool.flet.onesignal.android]
+location = true
+```
+
+```bash
+# Or pass the flag directly
+fos-build apk --location
+```
+
+**3. Build with `fos-build`:**
+
+```bash
+fos-build apk
+```
+
+> **Note:** Using `flet build apk` directly (without `fos-build`) will **not** inject the location module and the feature will silently fail at runtime.
 
 ---
 

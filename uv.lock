@@ -422,6 +422,7 @@ version = "0.4.2"
 source = { editable = "." }
 dependencies = [
     { name = "flet" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
 
 [package.optional-dependencies]
@@ -441,6 +442,7 @@ dev = [
 requires-dist = [
     { name = "flet", specifier = ">=0.80.0" },
     { name = "rich", marker = "extra == 'cli'", specifier = ">=13.0.0" },
+    { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=1.0.0" },
     { name = "watchdog", marker = "extra == 'cli'", specifier = ">=3.0.0" },
 ]
 provides-extras = ["cli"]

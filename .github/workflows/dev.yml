@@ -46,6 +46,6 @@ jobs:
         run: |
           uv tool run ty check
 
-#      - name: Run tests with coverage
-#        run: |
-#          uv run pytest -v --cov=flet_onesignal --cov-report=term-missing
+      - name: Run tests with coverage
+        run: |
+          uv run pytest -v --cov=flet_onesignal --cov-report=term-missing

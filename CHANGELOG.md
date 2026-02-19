@@ -1,10 +1,3 @@
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [Unreleased]
 
 ### Changed
@@ -14,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactor: remove Firebase from CLI; simplify `fos-build` for OneSignal module injection only
 
 ### Added
+- Unit test suite (60 tests) covering `build`, `console`, `types`, and `languages` modules
+- Enable test step with coverage in CI workflows (`main.yml`, `dev.yml`)
 - GitHub Actions CI workflows for `main` and `dev` branches (ruff, ty, version bump check)
 - Python 3.14 support and classifier
 - Note in README about using `page.services.append()` instead of `page.overlay.append()`

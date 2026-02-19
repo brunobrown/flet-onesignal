@@ -433,6 +433,7 @@ cli = [
 [package.dev-dependencies]
 dev = [
     { name = "flet", extra = ["all"] },
+    { name = "pytest" },
     { name = "pytest-cov" },
 ]
 
@@ -447,6 +448,7 @@ provides-extras = ["cli"]
 [package.metadata.requires-dev]
 dev = [
     { name = "flet", extras = ["all"], specifier = ">=0.80.0" },
+    { name = "pytest", specifier = ">=7.2.0" },
     { name = "pytest-cov", specifier = ">=7.0.0" },
 ]
 

@@ -10,6 +10,12 @@
 <a href="https://github.com/brunobrown/flet-asp/blob/main/LICENSE" target="_blank">
     <img src="https://img.shields.io/badge/license-MIT-green?style=flat" alt="License">
 </a>
+<a href="https://github.com/brunobrown/flet-onesignal/actions?query=workflow%3AMain+event%3Apush+branch%3Amain" target="_blank">
+    <img src="https://github.com/brunobrown/flet-onesignal/actions/workflows/main.yml/badge.svg?event=push&branch=main" alt="Main">
+</a>
+<a href="https://github.com/brunobrown/flet-onesignal/actions?query=workflow%3ADev+event%3Apush+branch%3ADev" target="_blank">
+    <img src="https://github.com/brunobrown/flet-onesignal/actions/workflows/dev.yml/badge.svg?event=push&branch=dev" alt="Dev">
+</a>
 <a href="https://pypi.org/project/flet-onesignal" target="_blank">
     <img src="https://img.shields.io/pypi/v/flet-onesignal?color=%2334D058&label=pypi%20package" alt="Package version">
 </a>

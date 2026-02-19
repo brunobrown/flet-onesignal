@@ -26,6 +26,7 @@ fos-build = "flet_onesignal.build:main"
 [dependency-groups]
 dev = [
     "flet[all]>=0.80.0",
+    "pytest>=7.2.0",
     "pytest-cov>=7.0.0",
 ]
 
@@ -58,7 +59,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-asyncio_mode = "auto"
+#asyncio_mode = "auto"
 addopts = "-v --tb=short"
 
 [tool.ty.rules]

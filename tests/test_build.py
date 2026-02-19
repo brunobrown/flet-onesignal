@@ -69,18 +69,22 @@ class TestInjectDepLine:
 class TestGetOnesignalConfig:
     def test_with_onesignal_section(self, tmp_path):
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(textwrap.dedent("""\
+        pyproject.write_text(
+            textwrap.dedent("""\
             [tool.flet.onesignal.android]
             location = true
-        """))
+        """)
+        )
         assert _get_onesignal_config(tmp_path) == {"location": True}
 
     def test_without_onesignal_section(self, tmp_path):
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(textwrap.dedent("""\
+        pyproject.write_text(
+            textwrap.dedent("""\
             [project]
             name = "my-app"
-        """))
+        """)
+        )
         assert _get_onesignal_config(tmp_path) == {}
 
     def test_missing_pyproject(self, tmp_path):
@@ -98,14 +102,16 @@ class TestInjectOnesignalModules:
         app_dir = flutter_dir / "android" / "app"
         app_dir.mkdir(parents=True)
         gradle = app_dir / ("build.gradle.kts" if kts else "build.gradle")
-        gradle.write_text(textwrap.dedent("""\
+        gradle.write_text(
+            textwrap.dedent("""\
             plugins {
                 id("com.android.application")
             }
             dependencies {
                 implementation("existing:lib:1.0")
             }
-        """))
+        """)
+        )
         return gradle
 
     def test_inject_kts(self, tmp_path):
@@ -176,7 +182,8 @@ class TestInjectProguardRules:
         app_dir = tmp_path / "app"
         app_dir.mkdir()
         kts = app_dir / "build.gradle.kts"
-        kts.write_text(textwrap.dedent("""\
+        kts.write_text(
+            textwrap.dedent("""\
             android {
                 buildTypes {
                     release {
@@ -184,7 +191,8 @@ class TestInjectProguardRules:
                     }
                 }
             }
-        """))
+        """)
+        )
         _inject_proguard_rules(app_dir)
         assert "proguard-rules.pro" in kts.read_text()
 
@@ -199,12 +207,14 @@ class TestCheckOnesignalModules:
         app_dir = tmp_path / "android" / "app"
         app_dir.mkdir(parents=True)
         gradle = app_dir / "build.gradle.kts"
-        gradle.write_text(textwrap.dedent("""\
+        gradle.write_text(
+            textwrap.dedent("""\
             dependencies {
                 implementation("com.onesignal:location:[5.0.0, 5.99.99]")
                 implementation("com.google.android.gms:play-services-location:18.0.0")
             }
-        """))
+        """)
+        )
         proguard = app_dir / "proguard-rules.pro"
         proguard.write_text(_PROGUARD_MARKER)
         assert _check_onesignal_modules(tmp_path, {"location": True}) is True
@@ -220,12 +230,14 @@ class TestCheckOnesignalModules:
         app_dir = tmp_path / "android" / "app"
         app_dir.mkdir(parents=True)
         gradle = app_dir / "build.gradle.kts"
-        gradle.write_text(textwrap.dedent("""\
+        gradle.write_text(
+            textwrap.dedent("""\
             dependencies {
                 implementation("com.onesignal:location:[5.0.0, 5.99.99]")
                 implementation("com.google.android.gms:play-services-location:18.0.0")
             }
-        """))
+        """)
+        )
         assert _check_onesignal_modules(tmp_path, {"location": True}) is False
 
     def test_no_gradle_file(self, tmp_path):

@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+## [0.4.2] - 2026-02-19
+
 ### Changed
 - Replace all `print()` calls with `debugPrint()` in Dart code for cleaner production output
 - Improve error handling with `FlutterError.reportError()` in `_handleError()`
@@ -12,6 +14,11 @@
 - GitHub Actions CI workflows for `main` and `dev` branches (ruff, ty, version bump check)
 - Python 3.14 support and classifier
 - Note in README about using `page.services.append()` instead of `page.overlay.append()`
+
+### Fixed
+- Python 3.10 compatibility — add `tomli` fallback for `tomllib` (stdlib 3.11+)
+
+## [0.4.1] - 2026-02-14
 
 ### Fixed
 - Move `rich` and `watchdog` to optional `[cli]` dependency to prevent `flet build` from stalling

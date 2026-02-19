@@ -5,6 +5,7 @@
 *.swp
 *.tmp
 *.lock
+!uv.lock
 .DS_Store
 .atom/
 .buildlog/

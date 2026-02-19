@@ -175,6 +175,8 @@ if __name__ == "__main__":
     ft.run(main)
 ```
 
+> **Note:** `OneSignal` is a **service**, not a visual control. You must add it using `page.services.append(onesignal)` — **not** `page.overlay.append(onesignal)`. Using `overlay` will not initialize the SDK correctly.
+
 ---
 
 ## Architecture

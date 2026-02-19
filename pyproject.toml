@@ -26,6 +26,7 @@ fos-build = "flet_onesignal.build:main"
 [dependency-groups]
 dev = [
     "flet[all]>=0.80.0",
+    "pytest-cov>=7.0.0",
 ]
 
 [tool.ruff]
@@ -54,6 +55,9 @@ known-first-party = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
 asyncio_mode = "auto"
 addopts = "-v --tb=short"
 
@@ -109,6 +113,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 
 [project.urls]

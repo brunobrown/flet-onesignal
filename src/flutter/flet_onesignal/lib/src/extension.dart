@@ -10,18 +10,17 @@ import 'onesignal_service.dart';
 class Extension extends FletExtension {
   @override
   void ensureInitialized() {
-    print(">>> FletOneSignal Extension: ensureInitialized called");
-    // OneSignal initialization is done in createService when app_id is available
+    debugPrint("FletOneSignal: ensureInitialized");
   }
 
   @override
   FletService? createService(Control control) {
-    print(">>> FletOneSignal Extension: createService called with type: '${control.type}'");
-    if (control.type == "OneSignal") {
-      print(">>> FletOneSignal Extension: Match! Creating OneSignalService");
-      return OneSignalService(control: control);
+    debugPrint("FletOneSignal: createService type='${control.type}'");
+    switch (control.type) {
+      case "OneSignal":
+        return OneSignalService(control: control);
+      default:
+        return null;
     }
-    print(">>> FletOneSignal Extension: No match for '${control.type}'");
-    return null;
   }
 }

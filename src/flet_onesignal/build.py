@@ -1,42 +1,35 @@
 #!/usr/bin/env python
 """
-Automated build script for Flet apps with OneSignal/Firebase support.
+Automated build script for Flet apps with OneSignal support.
 
 This script automates the process of building Flet apps for all platforms.
-For Android builds (apk/aab), it automatically injects Firebase/Google Services
-configuration required for OneSignal push notifications.
+For Android builds (apk/aab), it can inject optional OneSignal modules
+(e.g. location) as Gradle dependencies.
 
 Supported platforms: apk, aab, ipa, web, macos, linux, windows
 
 Usage:
-    # Android (with automatic Firebase injection):
     fos-build apk
     fos-build aab --split-per-abi
-
-    # iOS / Web / Desktop:
+    fos-build apk --location
     fos-build ipa
     fos-build web
-    fos-build macos
-    fos-build linux
-    fos-build windows
 
     # All flet build options are passed through:
     fos-build apk -v --org com.example --build-version 1.0.0
-
-Requirements (Android only):
-    - google-services.json in your project's android/ folder
-    - Service Account JSON uploaded to OneSignal Dashboard
 """
 
 import argparse
-import json
 import re
 import shutil
 import subprocess
 import sys
-import tomllib
-import unicodedata
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 from flet_onesignal import ui
 
@@ -90,234 +83,192 @@ def find_project_root() -> Path:
     return Path.cwd()
 
 
-def find_google_services_json(project_root: Path) -> Path | None:
-    """Find google-services.json in the project."""
-    possible_paths = [
-        project_root / "android" / "google-services.json",
-        project_root / "google-services.json",
-    ]
-
-    for path in possible_paths:
-        if path.exists():
-            return path
-
-    return None
-
-
-def modify_gradle_files(flutter_dir: Path, google_services_src: Path) -> bool:
-    """Modify Gradle files to add Google Services support."""
-    android_dir = flutter_dir / "android"
-    app_dir = android_dir / "app"
-
-    if not android_dir.exists():
-        return False
-
-    modified = False
-
-    # Check for Kotlin DSL
-    root_kts = android_dir / "build.gradle.kts"
-    app_kts = app_dir / "build.gradle.kts"
-
-    # Check for Groovy DSL
-    root_gradle = android_dir / "build.gradle"
-    app_gradle = app_dir / "build.gradle"
-
-    # Modify root build.gradle.kts (Kotlin DSL)
-    if root_kts.exists():
-        content = root_kts.read_text()
-        if "com.google.gms:google-services" not in content:
-            buildscript = """buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath("com.google.gms:google-services:4.4.2")
-    }
-}
-
-"""
-            root_kts.write_text(buildscript + content)
-            ui.modified("Modified: build.gradle.kts (root - added Google Services classpath)")
-            modified = True
-
-    # Modify app build.gradle.kts (Kotlin DSL)
-    if app_kts.exists():
-        content = app_kts.read_text()
-        if 'id("com.google.gms.google-services")' not in content:
-            content = content.replace(
-                'id("dev.flutter.flutter-gradle-plugin")',
-                'id("dev.flutter.flutter-gradle-plugin")\n    id("com.google.gms.google-services")',
-            )
-            app_kts.write_text(content)
-            ui.modified("Modified: build.gradle.kts (app - added Google Services plugin)")
-            modified = True
-
-    # Modify root build.gradle (Groovy DSL) - only if .kts doesn't exist
-    if root_gradle.exists() and not root_kts.exists():
-        content = root_gradle.read_text()
-        if "com.google.gms:google-services" not in content:
-            content = content.replace(
-                "classpath 'com.android.tools.build:gradle:",
-                "classpath 'com.google.gms:google-services:4.4.2'\n        classpath 'com.android.tools.build:gradle:",
-            )
-            root_gradle.write_text(content)
-            ui.modified("Modified: build.gradle (root)")
-            modified = True
-
-    # Modify app build.gradle (Groovy DSL) - only if .kts doesn't exist
-    if app_gradle.exists() and not app_kts.exists():
-        content = app_gradle.read_text()
-        if "com.google.gms.google-services" not in content:
-            if "plugins {" in content:
-                content = content.replace(
-                    'id "dev.flutter.flutter-gradle-plugin"',
-                    'id "dev.flutter.flutter-gradle-plugin"\n    id "com.google.gms.google-services"',
-                )
-            else:
-                content += "\napply plugin: 'com.google.gms.google-services'\n"
-            app_gradle.write_text(content)
-            ui.modified("Modified: build.gradle (app)")
-            modified = True
-
-    # Copy google-services.json
-    if app_dir.exists():
-        dest = app_dir / "google-services.json"
-        shutil.copy2(google_services_src, dest)
-        ui.modified("Copied: google-services.json to android/app/")
-        modified = True
-
-    return modified
-
-
-def check_gradle_configured(flutter_dir: Path) -> bool:
-    """Check if Gradle files are already configured for Google Services."""
-    android_dir = flutter_dir / "android"
-    app_dir = android_dir / "app"
-
-    root_kts = android_dir / "build.gradle.kts"
-    app_kts = app_dir / "build.gradle.kts"
-
-    if root_kts.exists() and app_kts.exists():
-        root_content = root_kts.read_text()
-        app_content = app_kts.read_text()
-
-        has_classpath = "com.google.gms:google-services" in root_content
-        has_plugin = 'id("com.google.gms.google-services")' in app_content
-
-        return has_classpath and has_plugin
-
-    return False
-
-
-def _slugify(value: str) -> str:
-    """Slugify a string (same logic as flet.utils.slugify)."""
-    value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
-    value = re.sub(r"[^\w\s-]", "", value).strip().lower()
-    return re.sub(r"[-_\s]+", "-", value).strip("-")
-
-
-def _get_google_services_package_names(path: Path) -> list[str]:
-    """Extract all package names from a google-services.json file."""
-    data = json.loads(path.read_text())
-    names = []
-    for client in data.get("client", []):
-        pkg = client.get("client_info", {}).get("android_client_info", {}).get("package_name")
-        if pkg:
-            names.append(pkg)
-    return names
-
-
-def _get_expected_package_name(project_root: Path, extra_args: list[str]) -> str | None:
-    """Determine the package name the app will use (same priority as flet CLI)."""
-    # Parse extra_args for --bundle-id and --org
-    bundle_id = None
-    org_arg = None
-    for i, arg in enumerate(extra_args):
-        if arg == "--bundle-id" and i + 1 < len(extra_args):
-            bundle_id = extra_args[i + 1]
-        elif arg.startswith("--bundle-id="):
-            bundle_id = arg.split("=", 1)[1]
-        elif arg == "--org" and i + 1 < len(extra_args):
-            org_arg = extra_args[i + 1]
-        elif arg.startswith("--org="):
-            org_arg = arg.split("=", 1)[1]
-
-    # Priority 1: --bundle-id from CLI
-    if bundle_id:
-        return bundle_id
-
-    # Read pyproject.toml
+def _get_onesignal_config(project_root: Path) -> dict:
+    """Read [tool.flet.onesignal.android] from pyproject.toml."""
     pyproject_path = project_root / "pyproject.toml"
     if not pyproject_path.exists():
-        return None
+        return {}
 
     with open(pyproject_path, "rb") as f:
         pyproject = tomllib.load(f)
 
-    tool_flet = pyproject.get("tool", {}).get("flet", {})
-
-    # Priority 2: tool.flet.android.bundle_id or tool.flet.bundle_id
-    flet_bundle_id = tool_flet.get("android", {}).get("bundle_id") or tool_flet.get("bundle_id")
-    if flet_bundle_id:
-        return flet_bundle_id
-
-    # Priority 3/4: org + project_name
-    org = org_arg or tool_flet.get("android", {}).get("org") or tool_flet.get("org")
-    if not org:
-        return None
-
-    project_name = pyproject.get("project", {}).get("name")
-    if not project_name:
-        return None
-
-    project_name = _slugify(project_name).replace("-", "_")
-    return f"{org}.{project_name}"
+    return pyproject.get("tool", {}).get("flet", {}).get("onesignal", {}).get("android", {})
 
 
-def _validate_google_services(
-    google_services: Path, project_root: Path, extra_args: list[str]
-) -> bool:
-    """Validate that the app's package name matches google-services.json."""
-    expected = _get_expected_package_name(project_root, extra_args)
-    if not expected:
-        return True  # Can't determine, skip validation
+# Map of optional OneSignal module names to their Maven coordinates + extra deps
+# Each entry: key -> list of (maven_coord, version_range) tuples
+_ONESIGNAL_MODULES = {
+    "location": [
+        ("com.onesignal:location", "[5.0.0, 5.99.99]"),
+        ("com.google.android.gms:play-services-location", "18.0.0"),
+    ],
+}
 
-    gs_packages = _get_google_services_package_names(google_services)
-    if not gs_packages:
-        return True  # No packages in file, skip validation
 
-    if expected in gs_packages:
-        return True
+def _inject_dep_line(content: str, dep_line: str) -> str:
+    """Insert a dependency line into the dependencies block of a gradle file.
 
-    body = (
-        f"  App package name:     {expected}\n"
-        f"  google-services.json: {', '.join(gs_packages)}\n\n"
-        "  The package name generated by your app does not match any\n"
-        "  package registered in google-services.json.\n"
-        "  Gradle will fail with 'No matching client found'.\n\n"
-        "  Package name = org + project_name\n"
-        "  (from pyproject.toml [tool.flet] org + [project] name)\n\n"
-        "  To fix, choose one:\n"
-        f"    1. Change [tool.flet] org in pyproject.toml so that\n"
-        f"       org + project_name = {gs_packages[0]}\n"
-        "    2. Download a new google-services.json from Firebase Console\n"
-        f"       with package name: {expected}\n"
-        f"    3. Use --bundle-id {gs_packages[0]} to override"
+    Handles both single-line ``dependencies {}`` and multi-line blocks.
+    """
+    # Try multi-line: closing brace on its own line
+    result, count = re.subn(
+        r"(dependencies\s*\{.*?)(^\})",
+        rf"\1{dep_line}\n\2",
+        content,
+        count=1,
+        flags=re.DOTALL | re.MULTILINE,
     )
-    ui.error_panel("PACKAGE NAME MISMATCH", body)
-    return False
+    if count:
+        return result
+
+    # Single-line: dependencies {}  or  dependencies { ... }
+    replacement = f"\\1\n{dep_line}\n}}"
+    return re.sub(
+        r"(dependencies\s*\{)([ \t]*)\}",
+        replacement,
+        content,
+        count=1,
+    )
+
+
+def _collect_onesignal_deps(config: dict) -> list[tuple[str, str]]:
+    """Collect all (maven_coord, version) pairs for enabled OneSignal modules."""
+    deps = []
+    for key, dep_list in _ONESIGNAL_MODULES.items():
+        if config.get(key):
+            deps.extend(dep_list)
+    return deps
+
+
+def _inject_onesignal_modules(flutter_dir: Path, config: dict) -> bool:
+    """Inject optional OneSignal module dependencies into app/build.gradle(.kts).
+
+    Returns True if any modifications were made.
+    """
+    android_dir = flutter_dir / "android"
+    app_dir = android_dir / "app"
+
+    if not app_dir.exists():
+        return False
+
+    deps = _collect_onesignal_deps(config)
+    if not deps:
+        return False
+
+    modified = False
+
+    # Check for Kotlin DSL first, then Groovy
+    app_kts = app_dir / "build.gradle.kts"
+    app_gradle = app_dir / "build.gradle"
+
+    if app_kts.exists():
+        content = app_kts.read_text()
+        for maven_coord, version in deps:
+            if maven_coord not in content:
+                dep_line = f'    implementation("{maven_coord}:{version}")'
+                content = _inject_dep_line(content, dep_line)
+                ui.modified(f"Injected: {maven_coord}:{version} into build.gradle.kts")
+                modified = True
+        if modified:
+            app_kts.write_text(content)
+
+    elif app_gradle.exists():
+        content = app_gradle.read_text()
+        for maven_coord, version in deps:
+            if maven_coord not in content:
+                dep_line = f"    implementation '{maven_coord}:{version}'"
+                content = _inject_dep_line(content, dep_line)
+                ui.modified(f"Injected: {maven_coord}:{version} into build.gradle")
+                modified = True
+        if modified:
+            app_gradle.write_text(content)
+
+    # Inject ProGuard rules to prevent R8 from stripping reflection targets
+    if modified and config.get("location"):
+        _inject_proguard_rules(app_dir)
+
+    return modified
+
+
+_ONESIGNAL_PROGUARD_RULES = """\
+# OneSignal Location module uses reflection on GoogleApiClient internals
+-keep class com.google.android.gms.common.api.GoogleApiClient { *; }
+-keep class com.google.android.gms.common.api.internal.zab* { *; }
+"""
+
+_PROGUARD_MARKER = "# OneSignal Location module"
+
+
+def _inject_proguard_rules(app_dir: Path) -> None:
+    """Add ProGuard keep rules for OneSignal Location reflection targets."""
+    proguard_file = app_dir / "proguard-rules.pro"
+
+    # Write the rules file
+    if proguard_file.exists():
+        content = proguard_file.read_text()
+        if _PROGUARD_MARKER in content:
+            return
+        content += "\n" + _ONESIGNAL_PROGUARD_RULES
+        proguard_file.write_text(content)
+    else:
+        proguard_file.write_text(_ONESIGNAL_PROGUARD_RULES)
+
+    ui.modified("Injected: ProGuard rules for OneSignal Location")
+
+    # Ensure the build.gradle(.kts) references the proguard file in the release buildType
+    app_kts = app_dir / "build.gradle.kts"
+
+    proguard_ref = 'proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")'
+
+    if app_kts.exists():
+        content = app_kts.read_text()
+        if "proguard-rules.pro" not in content:
+            content = content.replace(
+                "signingConfig = signingConfigs",
+                f"{proguard_ref}\n            signingConfig = signingConfigs",
+            )
+            app_kts.write_text(content)
+            ui.modified("Modified: build.gradle.kts (added proguardFiles reference)")
+
+
+def _check_onesignal_modules(flutter_dir: Path, config: dict) -> bool:
+    """Check if all enabled OneSignal modules are already in the gradle file."""
+    app_dir = flutter_dir / "android" / "app"
+    if not app_dir.exists():
+        return True  # Nothing to check
+
+    app_kts = app_dir / "build.gradle.kts"
+    app_gradle = app_dir / "build.gradle"
+
+    gradle_file = app_kts if app_kts.exists() else app_gradle if app_gradle.exists() else None
+    if not gradle_file:
+        return True  # Nothing to check
+
+    content = gradle_file.read_text()
+
+    for maven_coord, _ in _collect_onesignal_deps(config):
+        if maven_coord not in content:
+            return False
+
+    # Check ProGuard rules for location
+    if config.get("location"):
+        proguard_file = app_dir / "proguard-rules.pro"
+        if not proguard_file.exists() or _PROGUARD_MARKER not in proguard_file.read_text():
+            return False
+
+    return True
 
 
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Build Flet app with OneSignal/Firebase support",
+        description="Build Flet app with OneSignal support",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    fos-build apk              Build Android APK (with Firebase injection)
+    fos-build apk              Build Android APK
     fos-build aab              Build Android App Bundle
+    fos-build apk --location   Enable OneSignal Location module
     fos-build ipa              Build iOS IPA
     fos-build web              Build for web
     fos-build macos            Build for macOS
@@ -332,7 +283,8 @@ Examples:
     fos-build apk --clean      Clean build directory first
 
 Notes:
-    Android builds (apk/aab) automatically inject Firebase/Google Services.
+    For Android, optional OneSignal modules (e.g. location) can be enabled
+    via --location flag or [tool.flet.onesignal.android] in pyproject.toml.
     All other options (including -v) are passed directly to flet build.
         """,
     )
@@ -343,6 +295,11 @@ Notes:
     )
     parser.add_argument(
         "--clean", action="store_true", help="Clean build directory before building"
+    )
+    parser.add_argument(
+        "--location",
+        action="store_true",
+        help="Enable OneSignal Location module (injects gradle dependencies)",
     )
 
     args, extra = parser.parse_known_args()
@@ -364,42 +321,28 @@ Notes:
     cmd = ["flet", "build", args.build_type] + extra
 
     if args.build_type in ANDROID_PLATFORMS:
-        _build_android_with_firebase(args, cmd, project_root)
+        _build_android(args, cmd, project_root)
     else:
         _build_non_android(args, cmd, project_root)
 
 
-def _build_android_with_firebase(
+def _build_android(
     args: argparse.Namespace,
     cmd: list[str],
     project_root: Path,
 ) -> None:
-    """Build Android APK/AAB with automatic Firebase/Google Services injection."""
-    google_services = find_google_services_json(project_root)
-    if not google_services:
-        body = (
-            f"  Expected location:\n"
-            f"    {project_root}/android/google-services.json\n\n"
-            f"  This file is required for Android builds with Firebase/OneSignal.\n"
-            f"  Download it from the Firebase Console:\n"
-            f"    Project Settings > Your Android app > google-services.json"
-        )
-        ui.error_panel("MISSING google-services.json", body)
-        sys.exit(1)
-
-    ui.info("Found", str(google_services))
-
-    # Validate package name before starting the build
-    extra_args = cmd[3:]  # skip ["flet", "build", "<platform>"]
-    if not _validate_google_services(google_services, project_root, extra_args):
-        sys.exit(1)
+    """Build Android APK/AAB, injecting optional OneSignal modules if enabled."""
+    # Merge config: pyproject.toml + CLI flags
+    onesignal_config = _get_onesignal_config(project_root)
+    if args.location:
+        onesignal_config["location"] = True
 
     flutter_dir = project_root / "build" / "flutter"
     android_dir = flutter_dir / "android"
 
-    # Check if Flutter project already exists with correct configuration
-    if android_dir.exists() and check_gradle_configured(flutter_dir):
-        ui.build_info(f"Building {args.build_type.upper()} (Firebase already configured)...")
+    # No modules enabled → single pass (same as non-android)
+    if not _collect_onesignal_deps(onesignal_config):
+        ui.build_info(f"Building {args.build_type.upper()}...")
 
         result = subprocess.run(cmd, cwd=project_root)
 
@@ -410,13 +353,27 @@ def _build_android_with_firebase(
 
         sys.exit(result.returncode)
 
-    # First build pass - create Flutter project structure
-    ui.build_info(f"Building {args.build_type.upper()} with Firebase support...")
+    # Modules enabled and gradle already configured → single pass
+    if android_dir.exists() and _check_onesignal_modules(flutter_dir, onesignal_config):
+        ui.build_info(
+            f"Building {args.build_type.upper()} (OneSignal modules already configured)..."
+        )
+
+        result = subprocess.run(cmd, cwd=project_root)
+
+        if result.returncode == 0:
+            _handle_success(args.build_type, project_root)
+        else:
+            ui.failure_panel(FAILURE_TIPS)
+
+        sys.exit(result.returncode)
+
+    # Modules enabled but gradle not configured → first pass + inject + rebuild
+    ui.build_info(f"Building {args.build_type.upper()} with OneSignal modules...")
     ui.step(1, "Creating Flutter project...")
 
     result = subprocess.run(cmd, cwd=project_root)
 
-    # Check if android directory was created
     if not android_dir.exists():
         ui.error_panel(
             "Flutter project not created",
@@ -424,13 +381,10 @@ def _build_android_with_firebase(
         )
         sys.exit(1)
 
-    # Modify Gradle files
-    ui.step(2, "Injecting Firebase/Google Services configuration...")
+    ui.step(2, "Injecting OneSignal module dependencies...")
+    _inject_onesignal_modules(flutter_dir, onesignal_config)
 
-    modify_gradle_files(flutter_dir, google_services)
-
-    # Rebuild with Firebase config
-    ui.step(3, "Rebuilding with Firebase configuration...")
+    ui.step(3, "Rebuilding with OneSignal modules...")
 
     result = subprocess.run(cmd, cwd=project_root)
 

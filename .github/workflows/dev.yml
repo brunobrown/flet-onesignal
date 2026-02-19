@@ -1,0 +1,51 @@
+name: Flet OneSignal - Dev
+
+on:
+  push:
+    branches: [ dev ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up UV and Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache UV dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('uv.lock') }}
+          restore-keys: |
+            uv-${{ runner.os }}-py${{ matrix.python-version }}-
+            uv-${{ runner.os }}-
+
+      - name: Sync dependencies with UV
+        run: |
+          uv sync --dev --frozen --no-editable
+
+      - name: Check code formatting with Ruff
+        run: |
+          uv tool run ruff format --check
+
+      - name: Lint with Ruff
+        run: |
+          uv tool run ruff check
+
+      - name: Check types with ty
+        run: |
+          uv tool run ty check
+
+      - name: Run tests with coverage
+        run: |
+          uv run pytest -v --cov=flet_onesignal --cov-report=term-missing

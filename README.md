@@ -10,6 +10,12 @@
 <a href="https://github.com/brunobrown/flet-asp/blob/main/LICENSE" target="_blank">
     <img src="https://img.shields.io/badge/license-MIT-green?style=flat" alt="License">
 </a>
+<a href="https://github.com/brunobrown/flet-onesignal/actions?query=workflow%3AMain+event%3Apush+branch%3Amain" target="_blank">
+    <img src="https://github.com/brunobrown/flet-onesignal/actions/workflows/main.yml/badge.svg?event=push&branch=main" alt="Main">
+</a>
+<a href="https://github.com/brunobrown/flet-onesignal/actions?query=workflow%3ADev+event%3Apush+branch%3ADev" target="_blank">
+    <img src="https://github.com/brunobrown/flet-onesignal/actions/workflows/dev.yml/badge.svg?event=push&branch=dev" alt="Dev">
+</a>
 <a href="https://pypi.org/project/flet-onesignal" target="_blank">
     <img src="https://img.shields.io/pypi/v/flet-onesignal?color=%2334D058&label=pypi%20package" alt="Package version">
 </a>
@@ -36,7 +42,7 @@
 - [Location](#location) — geo-targeted messaging ([OneSignal Docs](https://documentation.onesignal.com/docs/en/location-data))
 - [Outcomes](#outcomes) — track actions and conversions ([OneSignal Docs](https://documentation.onesignal.com/docs/en/outcomes))
 - [Live Activities](#live-activities-ios) — iOS real-time updates (iOS 16.1+) ([OneSignal Docs](https://documentation.onesignal.com/docs/en/live-activities))
-- [Privacy & Consent](#privacy--consent) — GDPR compliance
+- [Privacy & Consent](#privacy--consent) — GDPR compliance ([OneSignal Docs](https://documentation.onesignal.com/docs/en/handling-personal-data))
 - [Debugging](#debugging) — log levels and error handling
 
 > **Version 0.4.0** - Built for Flet 0.80.x with a modular architecture that mirrors the OneSignal SDK structure.
@@ -174,6 +180,8 @@ async def main(page: ft.Page):
 if __name__ == "__main__":
     ft.run(main)
 ```
+
+> **Note:** `OneSignal` is a **service**, not a visual control. You must add it using `page.services.append(onesignal)` — **not** `page.overlay.append(onesignal)`. Using `overlay` will not initialize the SDK correctly.
 
 ---
 
@@ -529,7 +537,56 @@ await onesignal.location.set_shared(False)
 is_shared = await onesignal.location.is_shared()
 ```
 
-> **Note:** Location sharing requires appropriate permissions configured in your app.
+### Android Setup
+
+On Android, the OneSignal Location module is **not included by default**. Without it, `set_shared(True)` will log `no location dependency found` and location will not work.
+
+To enable it, you need to build your app using the `fos-build` CLI, which automatically injects the required Gradle dependencies (`com.onesignal:location`, `play-services-location`, and ProGuard rules).
+
+**1. Install the CLI:**
+
+```bash
+# Using UV (Recommended)
+uv add flet-onesignal[cli]
+
+# Using pip
+pip install flet-onesignal[cli]
+
+# Using Poetry
+poetry add flet-onesignal[cli]
+```
+
+**2. Add location permissions** to your `pyproject.toml`:
+
+```toml
+# pyproject.toml
+[tool.flet.android]
+permission."android.permission.ACCESS_FINE_LOCATION" = true
+permission."android.permission.ACCESS_COARSE_LOCATION" = true
+```
+
+These permissions are required in the Android Manifest for the app to access the device's GPS. `ACCESS_FINE_LOCATION` enables precise GPS positioning, while `ACCESS_COARSE_LOCATION` enables approximate location via Wi-Fi/cell towers. Without them, the system will deny location access at runtime even if the user grants permission in the dialog.
+
+**3. Enable the OneSignal Location module** via `pyproject.toml` or CLI flag:
+
+```toml
+# pyproject.toml
+[tool.flet.onesignal.android]
+location = true
+```
+
+```bash
+# Or pass the flag directly
+fos-build apk --location
+```
+
+**4. Build with `fos-build`:**
+
+```bash
+fos-build apk
+```
+
+> **Note:** Using `flet build apk` directly (without `fos-build`) will **not** inject the location module and the feature will silently fail at runtime.
 
 ---
 
@@ -596,6 +653,9 @@ await onesignal.consent_given(True)
 # If user declines
 await onesignal.consent_given(False)
 ```
+
+> **Important:** `require_consent=True` must be set in the constructor for the consent methods to work.
+> Without it, the SDK is fully active from initialization and calling `consent_given()` has no practical effect.
 
 ---
 

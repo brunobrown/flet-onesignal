@@ -13,6 +13,7 @@ dependencies:
 
   flet: ^0.80.5
   onesignal_flutter: ^5.4.1
+  permission_handler: ^11.3.0
 
 dev_dependencies:
   flutter_test:

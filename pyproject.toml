@@ -1,6 +1,6 @@
 [project]
 name = "flet-onesignal"
-version = "0.4.1"
+version = "0.4.2"
 description = "Flutter OneSignal package integration for Python Flet."
 requires-python = ">=3.10"
 readme = "README.md"
@@ -12,6 +12,7 @@ license-files = ["LICENSE"]
 
 dependencies = [
     "flet>=0.80.0",
+    "tomli>=1.0.0; python_version < '3.11'",
 ]
 
 [project.optional-dependencies]
@@ -26,6 +27,8 @@ fos-build = "flet_onesignal.build:main"
 [dependency-groups]
 dev = [
     "flet[all]>=0.80.0",
+    "pytest>=7.2.0",
+    "pytest-cov>=7.0.0",
 ]
 
 [tool.ruff]
@@ -54,7 +57,10 @@ known-first-party = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-asyncio_mode = "auto"
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+#asyncio_mode = "auto"
 addopts = "-v --tb=short"
 
 [tool.ty.rules]
@@ -109,6 +115,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 
 [project.urls]

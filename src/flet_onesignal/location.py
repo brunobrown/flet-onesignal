@@ -31,6 +31,19 @@ class OneSignalLocation:
         )
         return result == "true"
 
+    async def get_permission(self, timeout: float = 10) -> bool:
+        """
+        Check if location permission is currently granted.
+
+        Returns:
+            True if permission is granted, False otherwise.
+        """
+        result = await self._service._invoke_method(
+            "location_get_permission",
+            timeout=timeout,
+        )
+        return result == "true"
+
     async def set_shared(self, shared: bool) -> None:
         """
         Set whether location data should be shared with OneSignal.

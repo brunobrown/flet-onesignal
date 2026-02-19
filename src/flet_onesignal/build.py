@@ -213,7 +213,6 @@ def _inject_proguard_rules(app_dir: Path) -> None:
 
     # Ensure the build.gradle(.kts) references the proguard file in the release buildType
     app_kts = app_dir / "build.gradle.kts"
-    app_gradle = app_dir / "build.gradle"
 
     proguard_ref = 'proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")'
 
@@ -222,7 +221,7 @@ def _inject_proguard_rules(app_dir: Path) -> None:
         if "proguard-rules.pro" not in content:
             content = content.replace(
                 "signingConfig = signingConfigs",
-                f'{proguard_ref}\n            signingConfig = signingConfigs',
+                f"{proguard_ref}\n            signingConfig = signingConfigs",
             )
             app_kts.write_text(content)
             ui.modified("Modified: build.gradle.kts (added proguardFiles reference)")

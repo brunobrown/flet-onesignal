@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.10", "3.13", "3.14"]
       fail-fast: false
 
     steps:
@@ -49,3 +49,9 @@ jobs:
       - name: Run tests with coverage
         run: |
           uv run pytest -v --cov=flet_onesignal --cov-report=term-missing
+
+      - name: Build docs
+        if: matrix.python-version == '3.13'
+        run: |
+          uv sync --group docs --frozen --no-editable
+          NO_MKDOCS_2_WARNING=1 uv run --group docs mkdocs build --strict

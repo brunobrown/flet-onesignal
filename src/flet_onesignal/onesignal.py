@@ -66,30 +66,50 @@ class OneSignal(ft.Service):
         require_consent: Whether to require user consent before collecting data.
     """
 
-    # Configuration properties (sent to Flutter)
     app_id: str = ""
+    """Your OneSignal App ID from the dashboard."""
+
     log_level: Optional[OSLogLevel] = None
+    """SDK log level for console/logcat output. Defaults to `None` (no logging)."""
+
     visual_alert_level: Optional[OSLogLevel] = None
+    """SDK log level for visual alerts (iOS toast notifications). Defaults to `None`."""
+
     require_consent: bool = False
+    """Whether to require user consent before the SDK collects data (GDPR compliance)."""
 
-    # Notification events
     on_notification_click: Optional[ft.EventHandler[OSNotificationClickEvent]] = None
+    """Called when the user taps on a notification."""
+
     on_notification_foreground: Optional[ft.EventHandler[OSNotificationWillDisplayEvent]] = None
+    """Called when a notification is received while the app is in the foreground."""
+
     on_permission_change: Optional[ft.EventHandler[OSPermissionChangeEvent]] = None
+    """Called when the notification permission status changes."""
 
-    # User events
     on_user_change: Optional[ft.EventHandler[OSUserChangedEvent]] = None
+    """Called when the OneSignal user state changes."""
+
     on_push_subscription_change: Optional[ft.EventHandler[OSPushSubscriptionChangedEvent]] = None
+    """Called when the push subscription state changes."""
 
-    # In-App Message events
     on_iam_click: Optional[ft.EventHandler[OSInAppMessageClickEvent]] = None
-    on_iam_will_display: Optional[ft.EventHandler[OSInAppMessageWillDisplayEvent]] = None
-    on_iam_did_display: Optional[ft.EventHandler[OSInAppMessageDidDisplayEvent]] = None
-    on_iam_will_dismiss: Optional[ft.EventHandler[OSInAppMessageWillDismissEvent]] = None
-    on_iam_did_dismiss: Optional[ft.EventHandler[OSInAppMessageDidDismissEvent]] = None
+    """Called when the user clicks on an in-app message."""
 
-    # Error events
+    on_iam_will_display: Optional[ft.EventHandler[OSInAppMessageWillDisplayEvent]] = None
+    """Called before an in-app message is displayed."""
+
+    on_iam_did_display: Optional[ft.EventHandler[OSInAppMessageDidDisplayEvent]] = None
+    """Called after an in-app message is displayed."""
+
+    on_iam_will_dismiss: Optional[ft.EventHandler[OSInAppMessageWillDismissEvent]] = None
+    """Called before an in-app message is dismissed."""
+
+    on_iam_did_dismiss: Optional[ft.EventHandler[OSInAppMessageDidDismissEvent]] = None
+    """Called after an in-app message is dismissed."""
+
     on_error: Optional[ft.EventHandler[OSErrorEvent]] = None
+    """Called when an error occurs in the SDK."""
 
     # Internal sub-modules (not sent to Flutter)
     _debug: OneSignalDebug = field(default=None, init=False, metadata={"skip": True})

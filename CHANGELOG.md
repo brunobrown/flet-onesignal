@@ -1,4 +1,18 @@
-## [Unreleased]
+## [0.4.3] - 2026-02-20
+
+### Added
+- Full documentation site with MkDocs Material + mkdocstrings (API Reference auto-generated from docstrings)
+- Google-style docstrings to all Python modules (`onesignal`, `types`, `languages`, `console`, `debug`, `user`, `notifications`, `in_app_messages`, `location`, `session`, `live_activities`)
+- Guide pages: Push Notifications, User Management, In-App Messages, Location, Outcomes, Live Activities, Privacy & Consent, Debugging
+- Migration guide (v0.3.x → v0.4.0) and Troubleshooting page
+- Documentation build step in CI workflows (`main.yml`, `dev.yml`) on Python 3.13
+- OneSignal brand theme, logo, and external links opening in new tab
+- Installation steps with OneSignal Dashboard screenshots
+
+### Changed
+- Optimize CI Python matrix: 5 versions → 3 (3.10, 3.13, 3.14)
+- Fix OneSignal documentation links (correct slugs for SPA-based docs)
+- Remove PEP 639 conflicting license classifier from `pyproject.toml`
 
 ## [0.4.2] - 2026-02-19
 

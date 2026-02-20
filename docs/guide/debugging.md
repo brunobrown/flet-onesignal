@@ -79,3 +79,28 @@ ft.run(main)
 ```
 
 The `DebugConsole` reads log entries written by `setup_logging()` and displays them in a filterable dialog with color-coded levels.
+
+## Android Logcat Scripts
+
+The [`scripts/`](https://github.com/brunobrown/flet-onesignal/tree/main/scripts) directory includes two logcat viewer scripts that display Android logs with **Android Studio-style colors and formatting**. They auto-detect the focused app, filter by its PID, and highlight Flet/Flutter, Python errors and exceptions.
+
+**Bash version** (Linux/macOS — requires `adb` in PATH):
+
+```bash
+# Default filter (flutter, python, Error, Exception, Traceback)
+./scripts/flet_log.sh
+
+# Add extra filters
+./scripts/flet_log.sh "OneSignal|Firebase"
+```
+
+**Python version** (cross-platform):
+
+```bash
+python scripts/flet_log.py
+
+python scripts/flet_log.py "OneSignal|Firebase"
+```
+
+!!! info "Requirement"
+    A device or emulator connected via `adb`. The scripts clear the logcat buffer on each app restart so you only see fresh output.

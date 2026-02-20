@@ -16,7 +16,8 @@
   --md-accent-fg-color--transparent: #EC71731a;
 }
 
-/* White logo in the header to match the site name text */
-.md-header .md-header__button.md-logo img {
+/* White logo in the header and mobile drawer to match the site name text */
+.md-header .md-header__button.md-logo img,
+.md-nav__title .md-nav__button.md-logo img {
   filter: brightness(0) invert(1);
 }

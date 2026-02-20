@@ -24,6 +24,9 @@
 </a>
 <a href="https://pepy.tech/projects/flet-onesignal"><img src="https://static.pepy.tech/personalized-badge/flet-onesignal?period=monthly&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads%2Fmonth" alt="PyPI Downloads">
 </a>
+<a href="https://brunobrown.github.io/flet-onesignal" target="_blank">
+    <img src="https://img.shields.io/badge/docs-mkdocs-blue" alt="Documentation">
+</a>
 </p>
 
 ---

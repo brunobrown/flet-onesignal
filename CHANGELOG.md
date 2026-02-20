@@ -8,6 +8,8 @@
 - Documentation build step in CI workflows (`main.yml`, `dev.yml`) on Python 3.13
 - OneSignal brand theme, logo, and external links opening in new tab
 - Installation steps with OneSignal Dashboard screenshots
+- GitHub Actions workflow for automatic documentation deploy to GitHub Pages (`docs.yml`)
+- Documentation badge in README
 
 ### Changed
 - Optimize CI Python matrix: 5 versions → 3 (3.10, 3.13, 3.14)

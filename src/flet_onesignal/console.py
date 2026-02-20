@@ -2,25 +2,8 @@
 Debug Console module for flet-onesignal.
 
 Provides visual debugging tools for viewing application logs directly
-in Flet apps during development.
-
-Usage:
-    ```python
-    import flet as ft
-    import flet_onesignal as fos
-
-    async def main(page: ft.Page):
-        debug_console = fos.DebugConsole()
-
-        page.appbar = ft.AppBar(
-            title=ft.Text("My App"),
-            actions=[debug_console.icon],
-        )
-
-        page.add(ft.Text("Hello World"))
-
-    ft.run(main)
-    ```
+in Flet apps during development. Includes file-based logging with rotation
+and a log viewer dialog with color-coded levels and filtering.
 """
 
 import logging
@@ -34,7 +17,7 @@ import flet as ft
 
 
 class LogLevel(Enum):
-    """Log level with associated colors."""
+    """Log level with associated Flet colors for the DebugConsole display."""
 
     DEBUG = ("DEBUG", ft.Colors.GREY_600)
     INFO = ("INFO", ft.Colors.BLUE_600)
@@ -154,17 +137,28 @@ def setup_logging(
     max_bytes: int = 256 * 1024,  # 256 KB max (reduced)
     backup_count: int = 1,
 ) -> logging.Logger:
-    """
-    Setup logging to write to FLET_APP_CONSOLE with automatic rotation.
+    """Setup file-based logging with automatic rotation for use with DebugConsole.
+
+    Writes logs to the path specified by the `FLET_APP_CONSOLE` environment
+    variable, or to `debug.log` in the current directory, or to a temp file
+    as fallback.
 
     Args:
-        level: Logging level (default: logging.INFO)
-        format_string: Log format string
-        max_bytes: Maximum log file size in bytes (default: 256KB)
-        backup_count: Number of backup files to keep (default: 1)
+        level: Logging level (default: `logging.INFO`).
+        format_string: Log format string using `{}`-style formatting.
+        max_bytes: Maximum log file size in bytes before rotation (default: 256 KB).
+        backup_count: Number of rotated backup files to keep (default: 1).
 
     Returns:
         Configured logger instance.
+
+    Example:
+        ```python
+        import flet_onesignal as fos
+
+        logger = fos.setup_logging()
+        logger.info("App started")
+        ```
     """
     log_path = get_log_path()
 
@@ -193,14 +187,22 @@ def setup_logging(
 
 
 class DebugConsole:
-    """
-    Lightweight debug console for viewing application logs.
+    """Lightweight debug console for viewing application logs.
 
-    Provides an icon (for AppBar) and a FAB that open a dialog
-    showing application logs with color-coded levels.
+    Provides an `icon` (for AppBar) and a `fab` (floating action button) that
+    open a dialog showing application logs with color-coded levels and filtering.
+
+    Reads log entries written by `setup_logging()`.
+
+    Args:
+        title: Dialog title (default: `"Debug Console"`).
+        max_lines: Maximum number of log lines to display (default: 200).
 
     Example:
         ```python
+        import flet_onesignal as fos
+
+        logger = fos.setup_logging()
         debug = fos.DebugConsole()
 
         # Use icon in AppBar
@@ -214,8 +216,8 @@ class DebugConsole:
         ```
     """
 
-    # Maximum lines to display (performance limit)
     MAX_DISPLAY_LINES = 200
+    """Maximum lines to display (performance limit)."""
 
     def __init__(
         self,

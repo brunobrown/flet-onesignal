@@ -1,0 +1,22 @@
+/* OneSignal brand red: #E54B4D */
+
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #E54B4D;
+  --md-primary-fg-color--light: #EC7173;
+  --md-primary-fg-color--dark: #C93E40;
+  --md-accent-fg-color: #E54B4D;
+  --md-accent-fg-color--transparent: #E54B4D1a;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #E54B4D;
+  --md-primary-fg-color--light: #EC7173;
+  --md-primary-fg-color--dark: #C93E40;
+  --md-accent-fg-color: #EC7173;
+  --md-accent-fg-color--transparent: #EC71731a;
+}
+
+/* White logo in the header to match the site name text */
+.md-header .md-header__button.md-logo img {
+  filter: brightness(0) invert(1);
+}

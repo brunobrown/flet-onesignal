@@ -2,8 +2,14 @@ from enum import Enum
 
 
 class Language(Enum):
-    """
-    Enumeração de línguas suportadas pelo OneSignal.
+    """Languages supported by the OneSignal SDK.
+
+    Use with `user.set_language()` for localized notifications.
+
+    Example:
+        ```python
+        await onesignal.user.set_language(fos.Language.PORTUGUESE.value)
+        ```
     """
 
     ENGLISH = "en"

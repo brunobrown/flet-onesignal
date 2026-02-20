@@ -24,6 +24,9 @@
 </a>
 <a href="https://pepy.tech/projects/flet-onesignal"><img src="https://static.pepy.tech/personalized-badge/flet-onesignal?period=monthly&units=INTERNATIONAL_SYSTEM&left_color=GREY&right_color=BLUE&left_text=downloads%2Fmonth" alt="PyPI Downloads">
 </a>
+<a href="https://brunobrown.github.io/flet-onesignal" target="_blank">
+    <img src="https://img.shields.io/badge/docs-mkdocs-blue" alt="Documentation">
+</a>
 </p>
 
 ---
@@ -34,13 +37,13 @@
 
 ## Overview
 
-**Flet OneSignal** is an extension that integrates the [OneSignal Flutter SDK](https://documentation.onesignal.com/docs/flutter-sdk-setup) with [Flet](https://flet.dev) applications. It provides a complete Python API for:
+**Flet OneSignal** is an extension that integrates the [OneSignal Flutter SDK](https://documentation.onesignal.com/docs/en/flutter-sdk-setup) with [Flet](https://flet.dev) applications. It provides a complete Python API for:
 
-- [Push Notifications](#push-notifications) — send and receive on iOS and Android ([OneSignal Docs](https://documentation.onesignal.com/docs/en/push-notification-guide))
-- [In-App Messages](#in-app-messages) — targeted messages within your app ([OneSignal Docs](https://documentation.onesignal.com/docs/en/in-app-messages-quickstart))
+- [Push Notifications](#push-notifications) — send and receive on iOS and Android ([OneSignal Docs](https://documentation.onesignal.com/docs/en/push))
+- [In-App Messages](#in-app-messages) — targeted messages within your app ([OneSignal Docs](https://documentation.onesignal.com/docs/en/in-app-messages-setup))
 - [User Management](#user-management) — identity, tags, aliases, email, SMS ([OneSignal Docs](https://documentation.onesignal.com/docs/en/users))
-- [Location](#location) — geo-targeted messaging ([OneSignal Docs](https://documentation.onesignal.com/docs/en/location-data))
-- [Outcomes](#outcomes) — track actions and conversions ([OneSignal Docs](https://documentation.onesignal.com/docs/en/outcomes))
+- [Location](#location) — geo-targeted messaging ([OneSignal Docs](https://documentation.onesignal.com/docs/en/location-opt-in-prompt))
+- [Outcomes](#outcomes) — track actions and conversions ([OneSignal Docs](https://documentation.onesignal.com/docs/en/custom-outcomes))
 - [Live Activities](#live-activities-ios) — iOS real-time updates (iOS 16.1+) ([OneSignal Docs](https://documentation.onesignal.com/docs/en/live-activities))
 - [Privacy & Consent](#privacy--consent) — GDPR compliance ([OneSignal Docs](https://documentation.onesignal.com/docs/en/handling-personal-data))
 - [Debugging](#debugging) — log levels and error handling

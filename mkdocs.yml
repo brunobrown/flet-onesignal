@@ -1,0 +1,116 @@
+site_name: Flet OneSignal
+site_description: OneSignal SDK integration for Flet applications
+repo_url: https://github.com/brunobrown/flet-onesignal
+repo_name: brunobrown/flet-onesignal
+
+theme:
+  name: material
+  logo: assets/logo.png
+  favicon: assets/logo.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - content.code.copy
+    - search.highlight
+    - search.suggest
+    - toc.follow
+    - navigation.footer
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/brunobrown/flet-onesignal
+      name: Flet OneSignal on GitHub
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/dzWXP8SHG8
+      name: Community Discord
+    - icon: fontawesome/brands/x-twitter
+      link: https://x.com/fletdev
+      name: Flet on X
+    - icon: fontawesome/brands/bluesky
+      link: https://bsky.app/profile/fletdev.bsky.social
+      name: Flet on Bluesky
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+extra_javascript:
+  - assets/javascripts/external-links.js
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_signature_annotations: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            show_root_heading: true
+            show_bases: false
+            show_source: false
+            group_by_category: true
+            show_category_heading: true
+            separate_signature: true
+            inherited_members: false
+            filters:
+              - "!^_"
+
+markdown_extensions:
+  - attr_list
+  - def_list
+  - toc:
+      permalink: "#"
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.snippets
+  - admonition
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Home: index.md
+  - Guide:
+    - User Management: guide/user-management.md
+    - Push Notifications: guide/notifications.md
+    - In-App Messages: guide/in-app-messages.md
+    - Location: guide/location.md
+    - Outcomes: guide/outcomes.md
+    - Live Activities: guide/live-activities.md
+    - Privacy & Consent: guide/privacy-consent.md
+    - Debugging: guide/debugging.md
+  - API Reference:
+    - OneSignal: reference/onesignal.md
+    - User: reference/user.md
+    - Notifications: reference/notifications.md
+    - In-App Messages: reference/in-app-messages.md
+    - Location: reference/location.md
+    - Session: reference/session.md
+    - Live Activities: reference/live-activities.md
+    - Debug: reference/debug.md
+    - Types & Events: reference/types.md
+    - Languages: reference/languages.md
+    - Debug Console: reference/console.md
+  - Migration: migration.md
+  - Troubleshooting: troubleshooting.md

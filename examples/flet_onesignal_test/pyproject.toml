@@ -1,0 +1,29 @@
+[project]
+name = "flet-onesignal-test"
+version = "0.1.0"
+description = "Automated test runner for flet-onesignal"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+    { name = "developer", email = "you@example.com" }
+]
+
+dependencies = [
+    "flet>=0.80.5",
+    "flet-onesignal>=0.4.0"
+]
+
+[tool.uv]
+dev-dependencies = [
+    "flet[all]>=0.80.5",
+]
+
+[tool.flet.app]
+path = "src"
+
+[tool.flet.android]
+permission."android.permission.ACCESS_FINE_LOCATION" = true
+permission."android.permission.ACCESS_COARSE_LOCATION" = true
+
+[tool.flet.onesignal.android]
+location = true

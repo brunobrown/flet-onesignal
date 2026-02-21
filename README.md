@@ -872,17 +872,26 @@ If upgrading from version 0.3.x, note these breaking changes:
 
 ---
 
-## Example App
+## Examples
 
-A complete example demonstrating all features is available in the [`examples/flet_onesignal_example`](examples/flet_onesignal_example) directory.
+Two complete examples are available in the [`examples`](examples) directory:
 
-It includes pages for each module — login, notifications, tags, aliases, in-app messages, location, session outcomes and more — built with Flet's declarative UI.
+### Example App
 
-To run:
+Interactive demo with pages for each module — login, notifications, tags, aliases, in-app messages, location, session outcomes and more — built with Flet's declarative UI.
 
     cd examples/flet_onesignal_example
     uv sync
     uv run python src/main.py
+
+### Test Runner
+
+Automated test app that exercises every SDK method with a single tap and displays real-time results in a checklist + log panel. Useful for validating the integration on a real device after building with `fos-build` or `flet build`.
+
+    cd examples/flet_onesignal_test
+    uv sync
+    fos-build apk          # recommended (injects location module)
+    # or: uv run python src/main.py   # desktop preview (no location)
 
 ---
 

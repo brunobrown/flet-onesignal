@@ -142,16 +142,29 @@ fos.OneSignal
 
 Each module provides focused functionality and can be accessed as a property of the main `OneSignal` instance.
 
-## Example App
+## Examples
 
-A complete example demonstrating all features is available in the [`examples/flet_onesignal_example`](https://github.com/brunobrown/flet-onesignal/tree/main/examples/flet_onesignal_example) directory. It includes pages for each module — login, notifications, tags, aliases, in-app messages, location, session outcomes and more — built with Flet's declarative UI.
+Two complete examples are available in the [`examples`](https://github.com/brunobrown/flet-onesignal/tree/main/examples) directory:
 
-To run:
+### Example App
+
+Interactive demo with pages for each module — login, notifications, tags, aliases, in-app messages, location, session outcomes and more — built with Flet's declarative UI.
 
 ```bash
 cd examples/flet_onesignal_example
 uv sync
 uv run python src/main.py
+```
+
+### Test Runner
+
+Automated test app that exercises every SDK method with a single tap and displays real-time results in a checklist + log panel. Useful for validating the integration on a real device after building with `fos-build` or `flet build`.
+
+```bash
+cd examples/flet_onesignal_test
+uv sync
+fos-build apk          # recommended (injects location module)
+# or: uv run python src/main.py   # desktop preview (no location)
 ```
 
 ---

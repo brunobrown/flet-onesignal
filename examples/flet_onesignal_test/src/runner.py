@@ -70,7 +70,7 @@ async def run_all_tests(ctx: AppContext) -> None:
             await asyncio.sleep(0.05)
             continue
 
-        # 2. Location group warning (non-blocking dialog)
+        # 2. Location log warning (dialog only via AppBar info icon)
         if step_def.group == "Location" and not location_warned:
             location_warned = True
             state.add_log(
@@ -78,16 +78,6 @@ async def run_all_tests(ctx: AppContext) -> None:
                 "If built with 'flet build', location will silently fail.",
                 "warn",
             )
-            state.warning_title = "Location Module Required"
-            state.warning_message = (
-                "Location features require the OneSignal location module, "
-                "which is only injected when building with the 'fos-build' command.\n\n"
-                "If you built this app with 'flet build ...', location tests will "
-                "pass but location data will NOT be collected.\n\n"
-                "Build with: fos-build ..."
-            )
-            state.warning_url = "https://brunobrown.github.io/flet-onesignal/guide/location/"
-            state.show_warning_dialog = True
 
         # 3. User interaction → banner + wait
         if step_def.needs_user_interaction:

@@ -236,6 +236,18 @@ def App(state, onesignal, clipboard, platform):
         platform=platform,
     )
 
+    def on_info_click(e):
+        state.warning_title = "Location Module Required"
+        state.warning_message = (
+            "Location features require the OneSignal location module, "
+            "which is only injected when building with the 'fos-build' command.\n\n"
+            "If you built this app with 'flet build', location tests will "
+            "pass but location data will NOT be collected.\n\n"
+            "Build with: fos-build"
+        )
+        state.warning_url = "https://brunobrown.github.io/flet-onesignal/guide/location/"
+        state.show_warning_dialog = True
+
     return AppCtx(
         ctx,
         lambda: ft.View(
@@ -257,6 +269,14 @@ def App(state, onesignal, clipboard, platform):
                 title=ft.Text("OneSignal Test Runner"),
                 bgcolor=ft.Colors.BLUE_700,
                 color=ft.Colors.WHITE,
+                actions=[
+                    ft.IconButton(
+                        icon=ft.Icons.INFO_OUTLINE,
+                        icon_color=ft.Colors.WHITE,
+                        tooltip="Location module info",
+                        on_click=on_info_click,
+                    ),
+                ],
             ),
             padding=8,
         ),

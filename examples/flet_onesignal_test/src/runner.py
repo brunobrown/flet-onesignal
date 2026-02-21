@@ -82,9 +82,9 @@ async def run_all_tests(ctx: AppContext) -> None:
             state.warning_message = (
                 "Location features require the OneSignal location module, "
                 "which is only injected when building with the 'fos-build' command.\n\n"
-                "If you built this app with 'flet build apk', location tests will "
+                "If you built this app with 'flet build ...', location tests will "
                 "pass but location data will NOT be collected.\n\n"
-                "Build with: fos-build apk"
+                "Build with: fos-build ..."
             )
             state.warning_url = "https://brunobrown.github.io/flet-onesignal/guide/location/"
             state.show_warning_dialog = True

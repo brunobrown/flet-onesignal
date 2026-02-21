@@ -144,7 +144,7 @@ Each module provides focused functionality and can be accessed as a property of 
 
 ## Example App
 
-A complete example demonstrating all features is available in the [`examples/flet_onesignal_example`](https://github.com/brunobrown/flet-onesignal/tree/main/examples/flet_onesignal_example) directory. It includes pages for each module — login, notifications, tags, aliases, in-app messages, location, session outcomes and more — built with Flet's declarative UI.
+Complete examples demonstrating all functionalities are available at [`examples`](examples) directory. It includes pages for each module — login, notifications, tags, aliases, in-app messages, location, session outcomes and more — built with Flet's declarative UI.
 
 To run:
 

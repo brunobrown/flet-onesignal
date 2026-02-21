@@ -874,7 +874,7 @@ If upgrading from version 0.3.x, note these breaking changes:
 
 ## Example App
 
-A complete example demonstrating all features is available in the [`examples/flet_onesignal_example`](examples/flet_onesignal_example) directory.
+Complete examples demonstrating all functionalities are available at [`examples`](examples) directory.
 
 It includes pages for each module — login, notifications, tags, aliases, in-app messages, location, session outcomes and more — built with Flet's declarative UI.
 

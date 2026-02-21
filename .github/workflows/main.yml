@@ -62,6 +62,17 @@ jobs:
       - name: Verify version was bumped
         if: github.event_name == 'pull_request'
         run: |
+          git fetch origin main --depth=1
+
+          # Skip version check if only docs/examples changed
+          changed=$(git diff --name-only origin/main...HEAD)
+          code_changed=$(echo "$changed" | grep -vE '^(docs/|examples/|README\.md|mkdocs\.yml|scripts/|\.github/)' || true)
+
+          if [ -z "$code_changed" ]; then
+            echo "✅ Docs/examples-only PR — version bump not required"
+            exit 0
+          fi
+
           current=$(grep -E '^version = ' pyproject.toml | cut -d'"' -f2)
 
           if [[ ! $current =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -69,7 +80,6 @@ jobs:
             exit 1
           fi
 
-          git fetch origin main --depth=1
           base=$(git show origin/main:pyproject.toml | grep -E '^version = ' | cut -d'"' -f2)
 
           if [ "$current" = "$base" ]; then

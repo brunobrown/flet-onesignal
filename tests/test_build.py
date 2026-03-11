@@ -3,6 +3,7 @@
 import textwrap
 
 from flet_onesignal.build import (
+    _PROGUARD_LOCATION_MARKER,
     _PROGUARD_MARKER,
     _check_onesignal_modules,
     _collect_onesignal_deps,
@@ -159,6 +160,23 @@ class TestInjectProguardRules:
         assert proguard.exists()
         assert _PROGUARD_MARKER in proguard.read_text()
 
+    def test_base_rules_without_location(self, tmp_path):
+        app_dir = tmp_path / "app"
+        app_dir.mkdir()
+        _inject_proguard_rules(app_dir)
+        content = (app_dir / "proguard-rules.pro").read_text()
+        assert "dontwarn com.fasterxml.jackson" in content
+        assert _PROGUARD_LOCATION_MARKER not in content
+
+    def test_location_rules_included(self, tmp_path):
+        app_dir = tmp_path / "app"
+        app_dir.mkdir()
+        _inject_proguard_rules(app_dir, location=True)
+        content = (app_dir / "proguard-rules.pro").read_text()
+        assert _PROGUARD_MARKER in content
+        assert _PROGUARD_LOCATION_MARKER in content
+        assert "GoogleApiClient" in content
+
     def test_appends_to_existing(self, tmp_path):
         app_dir = tmp_path / "app"
         app_dir.mkdir()
@@ -175,6 +193,15 @@ class TestInjectProguardRules:
         _inject_proguard_rules(app_dir)
         content_first = (app_dir / "proguard-rules.pro").read_text()
         _inject_proguard_rules(app_dir)
+        content_second = (app_dir / "proguard-rules.pro").read_text()
+        assert content_first == content_second
+
+    def test_no_duplicate_with_location(self, tmp_path):
+        app_dir = tmp_path / "app"
+        app_dir.mkdir()
+        _inject_proguard_rules(app_dir, location=True)
+        content_first = (app_dir / "proguard-rules.pro").read_text()
+        _inject_proguard_rules(app_dir, location=True)
         content_second = (app_dir / "proguard-rules.pro").read_text()
         assert content_first == content_second
 
@@ -216,7 +243,7 @@ class TestCheckOnesignalModules:
         """)
         )
         proguard = app_dir / "proguard-rules.pro"
-        proguard.write_text(_PROGUARD_MARKER)
+        proguard.write_text(f"{_PROGUARD_MARKER}\n{_PROGUARD_LOCATION_MARKER}\n")
         assert _check_onesignal_modules(tmp_path, {"location": True}) is True
 
     def test_module_missing(self, tmp_path):
@@ -253,4 +280,14 @@ class TestCheckOnesignalModules:
         app_dir.mkdir(parents=True)
         gradle = app_dir / "build.gradle.kts"
         gradle.write_text("dependencies {\n}\n")
+        proguard = app_dir / "proguard-rules.pro"
+        proguard.write_text(_PROGUARD_MARKER)
         assert _check_onesignal_modules(tmp_path, {}) is True
+
+    def test_empty_config_no_proguard(self, tmp_path):
+        """Without ProGuard rules, even empty config should return False."""
+        app_dir = tmp_path / "android" / "app"
+        app_dir.mkdir(parents=True)
+        gradle = app_dir / "build.gradle.kts"
+        gradle.write_text("dependencies {\n}\n")
+        assert _check_onesignal_modules(tmp_path, {}) is False

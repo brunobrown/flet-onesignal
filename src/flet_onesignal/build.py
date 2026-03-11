@@ -183,37 +183,56 @@ def _inject_onesignal_modules(flutter_dir: Path, config: dict) -> bool:
         if modified:
             app_gradle.write_text(content)
 
-    # Inject ProGuard rules to prevent R8 from stripping reflection targets
-    if modified and config.get("location"):
-        _inject_proguard_rules(app_dir)
+    # Inject ProGuard rules to suppress R8 warnings
+    if modified:
+        _inject_proguard_rules(app_dir, location=bool(config.get("location")))
 
     return modified
 
 
 _ONESIGNAL_PROGUARD_RULES = """\
+# OneSignal SDK — suppress R8 warnings for transitive dependencies
+-dontwarn com.fasterxml.jackson.core.JsonFactory
+-dontwarn com.fasterxml.jackson.core.JsonGenerator
+-dontwarn com.google.auto.value.AutoValue$CopyAnnotations
+"""
+
+_ONESIGNAL_LOCATION_PROGUARD_RULES = """\
 # OneSignal Location module uses reflection on GoogleApiClient internals
 -keep class com.google.android.gms.common.api.GoogleApiClient { *; }
 -keep class com.google.android.gms.common.api.internal.zab* { *; }
 """
 
-_PROGUARD_MARKER = "# OneSignal Location module"
+_PROGUARD_MARKER = "# OneSignal SDK"
+_PROGUARD_LOCATION_MARKER = "# OneSignal Location module"
 
 
-def _inject_proguard_rules(app_dir: Path) -> None:
-    """Add ProGuard keep rules for OneSignal Location reflection targets."""
+def _inject_proguard_rules(app_dir: Path, *, location: bool = False) -> None:
+    """Add ProGuard rules for OneSignal SDK and optional Location module."""
     proguard_file = app_dir / "proguard-rules.pro"
 
-    # Write the rules file
     if proguard_file.exists():
         content = proguard_file.read_text()
-        if _PROGUARD_MARKER in content:
-            return
-        content += "\n" + _ONESIGNAL_PROGUARD_RULES
-        proguard_file.write_text(content)
     else:
-        proguard_file.write_text(_ONESIGNAL_PROGUARD_RULES)
+        content = ""
 
-    ui.modified("Injected: ProGuard rules for OneSignal Location")
+    changed = False
+
+    # Always inject base SDK rules (Jackson/AutoValue dontwarn)
+    if _PROGUARD_MARKER not in content:
+        content += "\n" + _ONESIGNAL_PROGUARD_RULES
+        changed = True
+
+    # Inject Location module keep rules only when location is enabled
+    if location and _PROGUARD_LOCATION_MARKER not in content:
+        content += "\n" + _ONESIGNAL_LOCATION_PROGUARD_RULES
+        changed = True
+
+    if not changed:
+        return
+
+    proguard_file.write_text(content.lstrip("\n"))
+    ui.modified("Injected: ProGuard rules for OneSignal SDK")
 
     # Ensure the build.gradle(.kts) references the proguard file in the release buildType
     app_kts = app_dir / "build.gradle.kts"
@@ -250,11 +269,14 @@ def _check_onesignal_modules(flutter_dir: Path, config: dict) -> bool:
         if maven_coord not in content:
             return False
 
-    # Check ProGuard rules for location
-    if config.get("location"):
-        proguard_file = app_dir / "proguard-rules.pro"
-        if not proguard_file.exists() or _PROGUARD_MARKER not in proguard_file.read_text():
-            return False
+    # Check base ProGuard rules (always required)
+    proguard_file = app_dir / "proguard-rules.pro"
+    if not proguard_file.exists() or _PROGUARD_MARKER not in proguard_file.read_text():
+        return False
+
+    # Check location-specific ProGuard rules
+    if config.get("location") and _PROGUARD_LOCATION_MARKER not in proguard_file.read_text():
+        return False
 
     return True
 
@@ -339,37 +361,32 @@ def _build_android(
 
     flutter_dir = project_root / "build" / "flutter"
     android_dir = flutter_dir / "android"
+    app_dir = android_dir / "app"
+    has_optional_modules = bool(_collect_onesignal_deps(onesignal_config))
+    location_enabled = bool(onesignal_config.get("location"))
 
-    # No modules enabled → single pass (same as non-android)
-    if not _collect_onesignal_deps(onesignal_config):
-        ui.build_info(f"Building {args.build_type.upper()}...")
-
-        result = subprocess.run(cmd, cwd=project_root)
-
-        if result.returncode == 0:
-            _handle_success(args.build_type, project_root)
-        else:
-            ui.failure_panel(FAILURE_TIPS)
-
-        sys.exit(result.returncode)
-
-    # Modules enabled and gradle already configured → single pass
+    # Check if everything is already configured (ProGuard + optional modules)
     if android_dir.exists() and _check_onesignal_modules(flutter_dir, onesignal_config):
-        ui.build_info(
-            f"Building {args.build_type.upper()} (OneSignal modules already configured)..."
-        )
+        # Also check that base ProGuard rules are present
+        proguard_file = app_dir / "proguard-rules.pro"
+        proguard_ok = proguard_file.exists() and _PROGUARD_MARKER in proguard_file.read_text()
 
-        result = subprocess.run(cmd, cwd=project_root)
+        if proguard_ok:
+            ui.build_info(f"Building {args.build_type.upper()} (OneSignal already configured)...")
+            result = subprocess.run(cmd, cwd=project_root)
 
-        if result.returncode == 0:
-            _handle_success(args.build_type, project_root)
-        else:
-            ui.failure_panel(FAILURE_TIPS)
+            if result.returncode == 0:
+                _handle_success(args.build_type, project_root)
+            else:
+                ui.failure_panel(FAILURE_TIPS)
 
-        sys.exit(result.returncode)
+            sys.exit(result.returncode)
 
-    # Modules enabled but gradle not configured → first pass + inject + rebuild
-    ui.build_info(f"Building {args.build_type.upper()} with OneSignal modules...")
+    # First pass: create Flutter project so we can inject into gradle files
+    if has_optional_modules:
+        ui.build_info(f"Building {args.build_type.upper()} with OneSignal modules...")
+    else:
+        ui.build_info(f"Building {args.build_type.upper()}...")
     ui.step(1, "Creating Flutter project...")
 
     result = subprocess.run(cmd, cwd=project_root)
@@ -381,10 +398,15 @@ def _build_android(
         )
         sys.exit(1)
 
-    ui.step(2, "Injecting OneSignal module dependencies...")
-    _inject_onesignal_modules(flutter_dir, onesignal_config)
+    # Inject optional module dependencies (location, etc.)
+    if has_optional_modules:
+        ui.step(2, "Injecting OneSignal module dependencies...")
+        _inject_onesignal_modules(flutter_dir, onesignal_config)
 
-    ui.step(3, "Rebuilding with OneSignal modules...")
+    # Always inject base ProGuard rules for OneSignal SDK
+    _inject_proguard_rules(app_dir, location=location_enabled)
+
+    ui.step(3 if has_optional_modules else 2, "Rebuilding with OneSignal configuration...")
 
     result = subprocess.run(cmd, cwd=project_root)
 

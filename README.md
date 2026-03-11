@@ -160,6 +160,8 @@ ONESIGNAL_APP_ID = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
 async def main(page: ft.Page):
     page.title = "My App"
+    page.vertical_alignment = ft.CrossAxisAlignment.CENTER
+    page.horizontal_alignment = ft.MainAxisAlignment.CENTER
 
     # Initialize OneSignal
     onesignal = fos.OneSignal(
@@ -895,20 +897,26 @@ Automated test app that exercises every SDK method with a single tap and display
 
 ---
 
-## 🌐 Community
+## Learn more
+* [Documentation](https://brunobrown.github.io/flet-onesignal)
+
+## Flet Community
 
 Join the community to contribute or get help:
 
-- [Discord](https://discord.gg/dzWXP8SHG8)
-- [GitHub Issues](https://github.com/brunobrown/flet-asp/issues)
+* [Discussions](https://github.com/flet-dev/flet/discussions)
+* [Discord](https://discord.gg/dzWXP8SHG8)
+* [X (Twitter)](https://twitter.com/fletdev)
+* [Bluesky](https://bsky.app/profile/fletdev.bsky.social)
+* [Email us](mailto:hello@flet.dev)
 
-## ⭐ Support
+## Support
 
-If you like this project, please give it a [GitHub star](https://github.com/brunobrown/flet-asp) ⭐
+If you like this project, please give it a [GitHub star](https://github.com/brunobrown/flet-onesignal) ⭐
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions and feedback are welcome!
 
@@ -916,14 +924,11 @@ Contributions and feedback are welcome!
 2. Create a feature branch
 3. Submit a pull request with detailed explanation
 
-For feedback, [open an issue](https://github.com/brunobrown/flet-asp/issues) with your suggestions.
+For feedback, [open an issue](https://github.com/brunobrown/flet-onesignal/issues) with your suggestions.
 
 ---
+## Try flet-onesignal today and enhance your Flet apps with push notifications!
 
-## Try **flet-onesignal** today and enhance your Flet apps with push notifications!
-
----
 
 <p align="center"><img src="https://github.com/user-attachments/assets/431aa05f-5fbc-4daa-9689-b9723583e25a" width="50%"></p>
 <p align="center"><a href="https://www.bible.com/bible/116/PRO.16.NLT"> Commit your work to the LORD, and your plans will succeed. Proverbs 16:3</a></p>
-

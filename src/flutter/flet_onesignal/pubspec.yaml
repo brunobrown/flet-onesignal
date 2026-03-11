@@ -1,6 +1,6 @@
 name: flet_onesignal
 description: "Flutter OneSignal package integration for Python Flet."
-version: 0.4.0
+version: 0.4.4
 repository: https://github.com/brunobrown/flet-onesignal
 
 environment:
@@ -21,3 +21,8 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 
 flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.flet.onesignal
+        pluginClass: FletOneSignalPlugin

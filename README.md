@@ -160,6 +160,8 @@ ONESIGNAL_APP_ID = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
 async def main(page: ft.Page):
     page.title = "My App"
+    page.vertical_alignment = ft.CrossAxisAlignment.CENTER
+    page.horizontal_alignment = ft.MainAxisAlignment.CENTER
 
     # Initialize OneSignal
     onesignal = fos.OneSignal(

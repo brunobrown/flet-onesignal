@@ -1,3 +1,20 @@
+## [0.4.4] - 2026-03-11
+
+### Added
+- Consumer ProGuard rules for Android — base OneSignal SDK rules (`-dontwarn` for Jackson/AutoValue) are now applied automatically via `consumer-rules.pro`, eliminating R8 errors when using `flet build apk` without `fos-build`
+- Android plugin stub (`FletOneSignalPlugin.java`) — no-op FlutterPlugin that enables Gradle to include the consumer ProGuard rules
+- Separate ProGuard rules for Location module (`-keep` for GoogleApiClient) — injected only when location is enabled
+- Tests for ProGuard rule separation: base rules without location, location-specific rules, no-duplicate with location, empty config without proguard
+
+### Changed
+- `_inject_proguard_rules()` now accepts `location` parameter to control location-specific rule injection
+- `_build_android()` always injects base ProGuard rules regardless of optional module configuration
+- `_check_onesignal_modules()` validates both base and location-specific ProGuard markers
+- Flet compatibility: updated `pubspec.yaml` to declare Android plugin platform with `pluginClass: FletOneSignalPlugin`
+
+### Fixed
+- R8 build error (`Missing classes: JsonFactory, JsonGenerator, AutoValue$CopyAnnotations`) when building release APK — caused by OneSignal SDK's transitive OpenTelemetry dependency referencing classes not present at runtime
+
 ## [0.4.3] - 2026-02-20
 
 ### Added

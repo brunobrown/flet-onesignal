@@ -18,6 +18,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Set up UV and Python ${{ matrix.python-version }}
         uses: astral-sh/setup-uv@v7
@@ -62,8 +64,6 @@ jobs:
       - name: Verify version was bumped
         if: github.event_name == 'pull_request'
         run: |
-          git fetch origin main --depth=1
-
           # Skip version check if only docs/examples changed
           changed=$(git diff --name-only origin/main...HEAD)
           code_changed=$(echo "$changed" | grep -vE '^(docs/|examples/|README\.md|mkdocs\.yml|scripts/|\.github/)' || true)
